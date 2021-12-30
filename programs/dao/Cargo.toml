@@ -1,5 +1,5 @@
 [package]
-name = "cyberwave_dao"
+name = "dao"
 version = "0.0.1"
 description = "cyber-wave DAO program"
 authors = ["Cyber-Wave <bakjuna@gmail.com>"]

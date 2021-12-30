@@ -1,12 +1,13 @@
-[programs.localnet]
-puppet_master = "Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS"
+[programs.devnet]
+dao = "5TY1ftQBHvXTxuccJSEbVBQMTYdFhKf9JJCZvFry6BYx"
+register = "BkZnVzwwiCfvZaF9EL57SjwS1dJquRJ596x8DGckrvvV"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "localnet"
-wallet = "/Users/srinivasvalekar/.config/solana/id.json"
+cluster = "devnet"
+wallet = "/Users/isuheon/.config/solana/id.json"
 
 [scripts]
 test = "yarn ts-mocha  -p ./tsconfig.json -t 30000 tests/**"

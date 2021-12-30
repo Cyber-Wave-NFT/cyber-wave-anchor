@@ -1,9 +1,9 @@
 use anchor_lang::prelude::*;
 
-declare_id!("Csk5CQ6mBiHnqMLiJAXzFTaFmLgPFXEpjRbmvpCLw8xV");
+declare_id!("5TY1ftQBHvXTxuccJSEbVBQMTYdFhKf9JJCZvFry6BYx");
 
 #[program]
-pub mod puppet {
+pub mod dao {
 	use super::*;
 	pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
 		Ok(())
@@ -19,19 +19,19 @@ pub mod puppet {
 #[derive(Accounts)]
 pub struct Initialize<'info> {
 	#[account(init, payer = user , space = 8+8)]
-	pub account: Account<'info, PuppetAccount>,
+	pub account: Account<'info, DaoAccount>,
 	#[account(mut)]
 	pub user: Signer<'info>,
 	pub system_program: Program<'info, System>,
 }
 
 #[account]
-pub struct PuppetAccount {
+pub struct DaoAccount {
 	pub data: u64,
 }
 
 #[derive(Accounts)]
 pub struct SetData<'info> {
 	#[account(mut)]
-	pub account: Account<'info, PuppetAccount>,
+	pub account: Account<'info, DaoAccount>,
 }

@@ -1,5 +1,5 @@
 [package]
-name = "cyberwave_register"
+name = "register"
 version = "0.0.1"
 description = "cyber-wave register program"
 authors = ["Cyber-Wave <bakjuna@gmail.com>"]
@@ -20,4 +20,4 @@ default = []
 
 [dependencies]
 anchor-lang = "0.16.1"
-cyberwave_dao = {path="../dao", features=["cpi"]}
+dao = {path="../dao", features=["cpi"]}
