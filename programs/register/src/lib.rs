@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use dao::program::Puppet;
-use dao::{self, PuppetAccount, SetData};
+use dao::{self, ProgramAccountInfo, SetData};
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
@@ -8,7 +8,7 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod register {
 	use super::*;
 
-	pub fn pull_strings(ctx: Context<PullStrings>, data: u64, bump: u8) -> ProgramResult {
+	pub fn pull_strings(ctx: Context<PullStrings>, data: ProgramAccountInfo, bump: u8) -> ProgramResult {
 		let cpi_program = ctx.accounts.puppet_program.to_account_info();
 		let cpi_accounts = SetData {
 			account: ctx.accounts.puppet.clone(),
