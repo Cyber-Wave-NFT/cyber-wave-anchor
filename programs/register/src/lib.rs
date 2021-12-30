@@ -8,7 +8,7 @@ declare_id!("BkZnVzwwiCfvZaF9EL57SjwS1dJquRJ596x8DGckrvvV");
 pub mod register {
 	use super::*;
 
-	pub fn pull_strings(ctx: Context<PullStrings>, data: ProgramAccountInfo) -> ProgramResult {
+	pub fn register(ctx: Context<Register>, data: ProgramAccountInfo) -> ProgramResult {
 		let cpi_program = ctx.accounts.dao_program.to_account_info();
 		let cpi_accounts = SetData {
 			account: ctx.accounts.dao.clone(),
@@ -20,7 +20,7 @@ pub mod register {
 
 #[derive(Accounts)]
 #[instruction(bump:u8)]
-pub struct PullStrings<'info> {
+pub struct Register<'info> {
 	//#[account(mut, seeds=[authority.key().as_ref()], bump=bump)]
 	#[account(mut)]
 	pub dao: Account<'info, ProgramAccountInfo>,
