@@ -8,37 +8,37 @@ describe('puppet-master', () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.Provider.env());
 
-  // it('Is initialized!', async () => {
-  //   // Add your test here.
-  //   const program = anchor.workspace.PuppetMaster;
-  //   const tx = await program.rpc.initialize();
-  //   console.log("Your transaction signature", tx);
-  // });
+  it('Is initialized!', async () => {
+    // Add your test here.
+    const program = anchor.workspace.PuppetMaster;
+    const tx = await program.rpc.initialize();
+    console.log("Your transaction signature", tx);
+  });
   const puppetAccount = anchor.web3.Keypair.generate();
 
-  // it("is initialized" , async () => {
-  //   try{
-  //     const puppetAccount = anchor.web3.Keypair.generate();
+  it("is initialized" , async () => {
+    try{
+      const puppetAccount = anchor.web3.Keypair.generate();
 
 
-  //     const puppet = anchor.workspace.Puppet;
+      const puppet = anchor.workspace.Puppet;
   
-  //     await puppet.rpc.initialize({
-  //       accounts: {
-  //         puppetAccount: puppetAccount.publicKey,
-  //         user: provider.wallet.publicKey,
-  //         systemProgram: SystemProgram.programId,
-  //       },
-  //       //instructions:[await puppet.account.puppetAccount.createInstruction(puppetAccount)],
-  //       signers: [puppetAccount]
+      await puppet.rpc.initialize({
+        accounts: {
+          puppetAccount: puppetAccount.publicKey,
+          user: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        //instructions:[await puppet.account.puppetAccount.createInstruction(puppetAccount)],
+        signers: [puppetAccount]
       
-  //     });
-  //   }
-  //   catch(err){
-  //     console.log(err);
-  //   }
+      });
+    }
+    catch(err){
+      console.log(err);
+    }
     
-  // });
+  });
 
 
   it("Performs CPI from puppet master to puppet", async () => {

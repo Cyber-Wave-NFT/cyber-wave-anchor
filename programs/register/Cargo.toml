@@ -1,0 +1,23 @@
+[package]
+name = "cyberwave_register"
+version = "0.0.1"
+description = "cyber-wave register program"
+authors = ["Cyber-Wave <bakjuna@gmail.com>"]
+repository = "https://github.com/Cyber-Wave-NFT/programs"
+license = "Apache-2.0"
+homepage = "https://cyber-wave.io/"
+edition = "2021"
+
+[lib]
+name = "register"
+crate-type = ["cdylib", "lib"]
+
+[features]
+no-entrypoint = []
+no-idl = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.16.1"
+cyberwave_dao = {path="../dao", features=["cpi"]}
