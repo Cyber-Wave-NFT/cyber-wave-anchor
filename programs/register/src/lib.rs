@@ -9,22 +9,21 @@ declare_id!("BkZnVzwwiCfvZaF9EL57SjwS1dJquRJ596x8DGckrvvV");
 pub mod register {
 	use super::*;
 
-	pub fn register(ctx: Context<Register>, data: RegisterInstructionData) -> ProgramResult {
+	pub fn register(ctx: Context<Register>, is_deposit: bool) -> ProgramResult {
 		let cpi_program = ctx.accounts.dao_program.to_account_info();
-		let account_data = ProgramAccountInfo {
+		let mut account_data = ProgramAccountInfo {
 			level: ctx.accounts.my_account.level,
 			exp: ctx.accounts.my_account.exp,
 			power: ctx.accounts.my_account.power,
 			registered_at: ctx.accounts.my_account.registered_at,
 			exp_per_minute: ctx.accounts.my_account.exp_per_minute,
-			character_pubkey: ctx.accounts.my_account.character_pubkey,
-			weapon_pubkey: ctx.accounts.my_account.weapon_pubkey,
+			character_pubkey: ctx.accounts.my_account.character_pubkey.clone(),
+			weapon_pubkey: ctx.accounts.my_account.weapon_pubkey.clone(),
 			boost: ctx.accounts.my_account.boost,
 			stunned_at: ctx.accounts.my_account.stunned_at,
 			ability_used_at: ctx.accounts.my_account.ability_used_at,
-			region: ctx.accounts.my_account.region
+			region: ctx.accounts.my_account.region.clone()
 		};
-		let is_deposit = data.is_deposit;
 
 		if is_deposit {
 			account_data.power = 1.01_f64.powf((account_data.level - 1) as f64) as u32 * 1000;
@@ -45,7 +44,7 @@ pub mod register {
 			account: ctx.accounts.my_account.clone(),
 		};
 		let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-		dao::cpi::set_data(cpi_ctx, account_data);
+		dao::cpi::set_data(cpi_ctx, account_data)?;
 		Ok(())
 	}
 }
@@ -53,13 +52,8 @@ pub mod register {
 #[derive(Accounts)]
 #[instruction(bump:u8)]
 pub struct Register<'info> {
-	//#[account(mut, seeds=[authority.key().as_ref()], bump=bump)]
 	#[account(mut)]
 	pub my_account: Account<'info, ProgramAccountInfo>,
 	pub dao_program: Program<'info, Dao>,
 	pub authority: AccountInfo<'info>,
-}
-
-pub struct RegisterInstructionData {
-	pub is_deposit: bool
 }
