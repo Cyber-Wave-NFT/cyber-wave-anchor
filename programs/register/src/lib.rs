@@ -35,7 +35,7 @@ pub mod register {
 			account_data.region = "00000000".to_string();
 			account_data.registered_at = 0;
 			account_data.exp += ((time_elapsed as u32) / 60) * account_data.exp_per_minute;
-			account_data.level = 1 + ((account_data.exp / 50) as f64).sqrt().floor() as u32;
+			account_data.level = 1 + ((account_data.exp / 50) as f64).sqrt().round() as u32;
 			account_data.exp_per_minute = 0;
 		}
 		

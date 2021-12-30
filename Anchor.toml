@@ -10,4 +10,4 @@ cluster = "devnet"
 wallet = "/Users/isuheon/.config/solana/id.json"
 
 [scripts]
-test = "yarn ts-mocha  -p ./tsconfig.json -t 30000 tests/**"
+test = "yarn ts-mocha -p ./tsconfig.json -t 30000 tests/puppet-master.ts"
