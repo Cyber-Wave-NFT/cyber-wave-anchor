@@ -5,7 +5,7 @@ declare_id!("5TY1ftQBHvXTxuccJSEbVBQMTYdFhKf9JJCZvFry6BYx");
 #[program]
 pub mod dao {
 	use super::*;
-	pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+	pub fn initialize(_ctx: Context<Initialize>) -> ProgramResult {
 		Ok(())
 	}
 
