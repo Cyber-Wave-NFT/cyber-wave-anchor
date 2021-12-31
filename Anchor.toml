@@ -10,4 +10,4 @@ cluster = "devnet"
 wallet = "/Users/bakjuna/.config/solana/id.json"
 
 [scripts]
-test = "node --inspect ./node_modules/.bin/jest -i tests/test-cpi.test.ts"
+test = "yarn ts-node -p ./tsconfig.json -t 30000 tests/puppet-master.ts"
