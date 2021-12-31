@@ -1,6 +1,7 @@
 {
     "dependencies": {
         "@project-serum/anchor": "^0.16.0",
+        "jest": "^27.4.5",
         "ts-node": "^10.4.0",
         "tsc": "^2.0.3"
     },

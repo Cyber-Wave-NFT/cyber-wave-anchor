@@ -48,7 +48,7 @@ describe('puppet-master', () => {
 			const [programSigner, bump] = await anchor.web3.PublicKey.findProgramAddress([newDaoAccount.publicKey.toBuffer()], dao.programId);
 			console.log(programSigner.toString());
 			//puppet.account.puppetAccount.createProgramAddress({from})
-      console.log(newDaoAccount.publicKey.toString());
+      		console.log(newDaoAccount.publicKey.toString());
 
 			console.log(dao.programId.toString());
 			console.log(register.programId.toString());
@@ -64,14 +64,14 @@ describe('puppet-master', () => {
 			// });
 
 			// Invoke the puppet master to perform a CPI to the puppet.
-			await register.rpc.register(new anchor.BN(0), {
-				accounts: {
-					myAccount: newDaoAccount.publicKey,
-					daoProgram: dao.programId,
-					authority : provider.wallet.publicKey
-				},
-				signers:[programSigner]
-			});
+		await register.rpc.register(new anchor.BN(0), {
+			accounts: {
+				myAccount: newDaoAccount.publicKey,
+				daoProgram: dao.programId,
+				authority : provider.wallet.publicKey
+			},
+			signers:[programSigner]
+		});
 
 		// Check the state updated.
 		const result = await dao.account.account.fetch(newDaoAccount.publicKey);
@@ -83,7 +83,4 @@ describe('puppet-master', () => {
 		}
 		
 	});
-
-	
-
 });
