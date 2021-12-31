@@ -10,52 +10,19 @@ describe('cpi', () => {
 	const dao = anchor.workspace.Dao;
 	const register = anchor.workspace.Register;
 
-	const key = Uint8Array.from([182,150,222,7,91,100,132,163,126,132,192,174,252,86,128,175,119,194,160,54,184,114,126,120,196,84,73,145,194,4,223,79,81,114,140,35,118,155,201,165,129,171,210,168,11,147,82,133,170,79,244,33,239,13,116,38,28,71,194,81,144,1,104,88])
-	const clientWalletAccount = anchor.web3.Keypair.fromSecretKey(key)
-
 	let newDataAccount
-	// let connection: Connection
+	let connection: Connection
 	const GREETING_SIZE = 48
 	it('test amu', async () => {
 		// Derive the address (public key) of a greeting account from the program so that it's easy to find later.
-		const SEED = "11111111112222222222333333333346" // spl token
+		const SEED = "11111111112222222222333333333344" // spl token
 		// spl token으로 hashing 까지
 		newDataAccount = await PublicKey.createWithSeed(
-			clientWalletAccount.publicKey,
+			dao.provider.wallet.publicKey,
 			SEED,
 			dao.programId,
 		)
-		// console.log(dao.provider.wallet.publicKey.toBase58()) // my wallet
-		// console.log(dao.programId.toBase58()), // da programId
-		// console.log(newDataAccount.toBase58()) // new Account PubKey
-
-		const dataAccount = await dao.provider.connection.getAccountInfo(newDataAccount)
-		if (dataAccount === null) {
-			console.log(
-				'Creating account',
-				newDataAccount.toBase58(),
-				'to say hello to',
-			)
-			const lamports = await dao.provider.connection.getMinimumBalanceForRentExemption(GREETING_SIZE)
-
-			let create_new_acc_dao = new Transaction().add(
-				// create account
-				SystemProgram.createAccountWithSeed({
-					fromPubkey: clientWalletAccount.publicKey,
-					basePubkey: clientWalletAccount.publicKey,
-					seed: SEED,
-					newAccountPubkey: newDataAccount,
-					lamports,
-					space: GREETING_SIZE,
-					programId: dao.programId,
-				})
-			);
-
-			await dao.provider.send(create_new_acc_dao, [clientWalletAccount]);
-		} else {
-			console.log('success')
-			console.log(dataAccount)
-		}
+		console.log(newDataAccount)
 	});
 	// it('setup data account and create to dao program', async () => {
 	// 	newDataAccount = Keypair.generate();

@@ -2,7 +2,7 @@
 	"name": "cyber-wave-anchor",
 	"license": "MIT",
 	"scripts": {
-		"test": "ANCHOR_PROVIDER_URL=https://solana-api.projectserum.com ANCHOR_WALLET=~/.config/solana/id.json ./node_modules/.bin/jest -i tests/**.*"
+		"test": "ANCHOR_PROVIDER_URL=https://api.devnet.solana.com ANCHOR_WALLET=~/.config/solana/id.json ./node_modules/.bin/jest -i tests/**.*"
 	},
 	"jest": {
 		"transform": {
@@ -15,6 +15,7 @@
 		"@babel/plugin-transform-runtime": "^7.16.7",
 		"@babel/preset-env": "^7.16.7",
 		"@project-serum/anchor": "^0.16.0",
+        "@solana/spl-token": "^0.1.8",
 		"ts-node": "^10.4.0",
 		"tsc": "^2.0.3"
 	},
