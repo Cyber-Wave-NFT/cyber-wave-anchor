@@ -40,6 +40,7 @@ describe('puppet-master', () => {
 			}
 			catch(err){
 				console.log(err)
+				fail(err)
 			}
 		
 	})
