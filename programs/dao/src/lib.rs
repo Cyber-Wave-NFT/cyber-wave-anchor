@@ -29,7 +29,7 @@ pub mod dao {
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
-	#[account(init, payer = user , space = 64)]
+	#[account(zero)]
 	pub my_account: Account<'info, ProgramAccountInfo>,
 	#[account(mut)]
 	pub user: Signer<'info>,

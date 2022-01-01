@@ -1,4 +1,5 @@
 import * as anchor from '@project-serum/anchor'
+import { NodeWallet } from '@project-serum/anchor/dist/cjs/provider'
 
 describe('cpi', () => {
 	// Configure the client to use the local cluster.
@@ -19,7 +20,7 @@ describe('cpi', () => {
 	let newDataAccount: anchor.web3.PublicKey
 	const GREETING_SIZE = 48
 	it('test amu', async () => {
-		const SEED = '11111111112222222222333333333346' // spl token
+		const SEED = '11111111112222222222333333333320' // spl token
 		// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
 		newDataAccount = await anchor.web3.PublicKey.createWithSeed(clientWalletAccount.publicKey, SEED, dao.programId)
 		// newDataAccount가 가지고있는 DAO 소속 data account
@@ -30,7 +31,7 @@ describe('cpi', () => {
 			console.log('Creating account', newDataAccount.toBase58(), 'to say hello to')
 
 			// 데이터 사이즈에 맞는 최소 rent비 무시 적재량 계산
-			const lamports = await dao.provider.connection.getMinimumBalanceForRentExemption(GREETING_SIZE)
+			const lamports = await dao.provider.connection.getMinimumBalanceForRentExemption(GREETING_SIZE + 8)
 
 			// 트랜잭션
 			let createNewAccDao = new anchor.web3.Transaction().add(
@@ -41,7 +42,7 @@ describe('cpi', () => {
 					seed: SEED,
 					newAccountPubkey: newDataAccount,
 					lamports,
-					space: GREETING_SIZE,
+					space: GREETING_SIZE + 8,
 					programId: dao.programId,
 				}),
 			)
@@ -56,24 +57,24 @@ describe('cpi', () => {
 
 	it('Send transaction to register program', async () => {
 		try {
-			const newAccount = anchor.web3.Keypair.generate()
 			const tx = await dao.rpc.initialize({
 				accounts: {
-					myAccount: newAccount.publicKey,
+					myAccount: newDataAccount,
 					user: provider.wallet.publicKey,
 					systemProgram: anchor.web3.SystemProgram.programId,
 				},
-				signers: [newAccount],
+				signers: [],
 			})
 			console.log('Your transaction signature', tx)
+			console.log(`newDataAccount:${newDataAccount}`)
 			await register.rpc.register(new anchor.BN(1), {
 				accounts: {
-					myAccount: newAccount.publicKey,
+					myAccount: newDataAccount,
 					daoProgram: dao.programId,
 				},
 			})
 
-			const result = await dao.account.programAccountInfo.fetch(newAccount.publicKey)
+			const result = await dao.account.programAccountInfo.fetch(newDataAccount)
 			console.log(result['level'])
 			expect(result['level']).toBe(1)
 		} catch (err) {
