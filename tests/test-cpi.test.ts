@@ -1,6 +1,64 @@
 import * as anchor from '@project-serum/anchor'
-import { NodeWallet } from '@project-serum/anchor/dist/cjs/provider'
-
+import * as borsh from 'borsh'
+class ProgramAccountInfo {
+	level = 0
+	exp = 0
+	power = 0
+	registered_at = 0
+	exp_per_minute = 0
+	character_pubkey = ""
+	weapon_pubkey = ""
+	boost = 0
+	stunned_at = 0
+	ability_used_at = 0
+	region = ""
+	constructor(fields: {
+		level: number, 
+		exp: number,
+		power: number,
+		registered_at: number,
+		exp_per_minute: number,
+		character_pubkey: string,
+		weapon_pubkey: string,
+		boost: number,
+		stunned_at: number,
+		ability_used_at: number,
+		region: string
+	} | undefined = undefined) {
+		if (fields) {
+			this.level = fields.level;
+			this.exp = fields.exp;
+			this.power = fields.power;
+			this.registered_at = fields.registered_at;
+			this.exp_per_minute = fields.exp_per_minute;
+			this.character_pubkey = fields.character_pubkey;
+			this.weapon_pubkey = fields.weapon_pubkey;
+			this.boost = fields.boost;
+			this.stunned_at = fields.stunned_at;
+			this.ability_used_at = fields.ability_used_at;
+			this.region = fields.region;
+		}
+	}
+}
+  
+  /**
+   * Borsh schema definition for greeting accounts
+   */
+const ProgramAccountInfoSchema = new Map([
+	[ProgramAccountInfo, {kind: 'struct', fields: [
+		['level', 'u32'],
+		['exp', 'u32'],
+		['power', 'u32'],
+		['registered_at', 'u64'],
+		['exp_per_minute', 'u32'],
+		['character_pubkey', 'String'],
+		['weapon_pubkey', 'String'],
+		['boost', 'u32'],
+		['stunned_at', 'u32'],
+		['ability_used_at', 'u32'],
+		['region', 'String']
+	]}],
+]);
 describe('cpi', () => {
 	// Configure the client to use the local cluster.
 	const provider = anchor.Provider.local("https://api.devnet.solana.com")
@@ -18,9 +76,14 @@ describe('cpi', () => {
 	const clientWalletAccount = anchor.web3.Keypair.fromSecretKey(key)
 
 	let newDataAccount: anchor.web3.PublicKey
-	const GREETING_SIZE = 48
+	
+
+	const SIZE = borsh.serialize(
+		ProgramAccountInfoSchema,
+		new ProgramAccountInfo(),
+	  ).length + 8
 	it('test amu', async () => {
-		const SEED = '11111111112222222222333333333320' // spl token
+		const SEED = '11111111112222222222333333333321' // spl token
 		// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
 		newDataAccount = await anchor.web3.PublicKey.createWithSeed(clientWalletAccount.publicKey, SEED, dao.programId)
 		// newDataAccount가 가지고있는 DAO 소속 data account
@@ -31,7 +94,7 @@ describe('cpi', () => {
 			console.log('Creating account', newDataAccount.toBase58(), 'to say hello to')
 
 			// 데이터 사이즈에 맞는 최소 rent비 무시 적재량 계산
-			const lamports = await dao.provider.connection.getMinimumBalanceForRentExemption(GREETING_SIZE + 8)
+			const lamports = await dao.provider.connection.getMinimumBalanceForRentExemption(SIZE)
 
 			// 트랜잭션
 			let createNewAccDao = new anchor.web3.Transaction().add(
@@ -42,21 +105,13 @@ describe('cpi', () => {
 					seed: SEED,
 					newAccountPubkey: newDataAccount,
 					lamports,
-					space: GREETING_SIZE + 8,
+					space: SIZE,
 					programId: dao.programId,
 				}),
 			)
 
 			// 트랜잭션 실제 발생
 			await dao.provider.send(createNewAccDao, [clientWalletAccount])
-		} else {
-			console.log('success')
-			console.log(dataAccount)
-		}
-	})
-
-	it('Send transaction to register program', async () => {
-		try {
 			const tx = await dao.rpc.initialize({
 				accounts: {
 					myAccount: newDataAccount,
@@ -67,6 +122,15 @@ describe('cpi', () => {
 			})
 			console.log('Your transaction signature', tx)
 			console.log(`newDataAccount:${newDataAccount}`)
+		} else {
+			console.log('success')
+			console.log(dataAccount)
+		}
+	})
+
+	it('Send transaction to register program', async () => {
+		try {
+
 			await register.rpc.register(new anchor.BN(1), {
 				accounts: {
 					myAccount: newDataAccount,
