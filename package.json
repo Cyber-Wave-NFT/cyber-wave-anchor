@@ -14,7 +14,7 @@
 		"@babel/plugin-transform-modules-commonjs": "^7.16.7",
 		"@babel/plugin-transform-runtime": "^7.16.7",
 		"@babel/preset-env": "^7.16.7",
-		"@project-serum/anchor": "^0.16.0",
+		"@project-serum/anchor": "^0.18.0",
         "@solana/spl-token": "^0.1.8",
 		"ts-node": "^10.4.0",
 		"tsc": "^2.0.3"

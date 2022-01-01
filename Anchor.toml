@@ -1,6 +1,6 @@
 [programs.devnet]
-dao = "5TY1ftQBHvXTxuccJSEbVBQMTYdFhKf9JJCZvFry6BYx"
-register = "BkZnVzwwiCfvZaF9EL57SjwS1dJquRJ596x8DGckrvvV"
+dao = "GdySSAQ5BGoa11mUHoHDeJZdmyZQbreguyBJLu8XMvS9"
+register = "7xESfHY92n9LZ5GteyQX5hsJrj8kKfeYssh69TL1w3BM"
 
 [registry]
 url = "https://anchor.projectserum.com"
