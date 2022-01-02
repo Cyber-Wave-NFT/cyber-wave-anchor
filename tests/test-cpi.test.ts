@@ -59,13 +59,16 @@ const ProgramAccountInfoSchema = new Map([
 		['ability_used_at', 'u32'],
 		['region', 'String']
 	]}],
-]);
+])
+jest.setTimeout(30000000)
 describe('cpi', () => {
 	// Configure the client to use the local cluster.
 	const provider = anchor.Provider.local("https://api.devnet.solana.com")
 	console.log(provider.wallet.publicKey.toBase58())
 	anchor.setProvider(provider)
 
+
+	
 	// DAO 프로그램, register 프로그램 가져오기
 	const dao = anchor.workspace.Dao
 	const register = anchor.workspace.Register
