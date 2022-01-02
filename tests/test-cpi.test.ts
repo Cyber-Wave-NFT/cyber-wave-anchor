@@ -58,13 +58,16 @@ const ProgramAccountInfoSchema = new Map([
 		['ability_used_at', 'u32'],
 		['region', 'String']
 	]}],
-]);
+])
+jest.setTimeout(30000000)
 describe('cpi', () => {
 	// Configure the client to use the local cluster.
 	const provider = anchor.Provider.local("https://api.devnet.solana.com")
 	console.log(provider.wallet.publicKey.toBase58())
 	anchor.setProvider(provider)
 
+
+	
 	// DAO 프로그램, register 프로그램 가져오기
 	const dao = anchor.workspace.Dao
 	const register = anchor.workspace.Register
@@ -76,7 +79,7 @@ describe('cpi', () => {
 	// 클라이언트 월렛 어카운트
 	const a_clientWalletAccount = anchor.web3.Keypair.fromSecretKey(a_key)
 	const b_clientWalletAccount = anchor.web3.Keypair.fromSecretKey(b_key)
-
+	
 	console.log(a_clientWalletAccount.publicKey.toBase58())
 	console.log(b_clientWalletAccount.publicKey.toBase58())
 
@@ -87,6 +90,9 @@ describe('cpi', () => {
 		new ProgramAccountInfo(),
 	  ).length + 8
 	it('test amu', async () => {
+
+		const conn = new anchor.web3.Connection("https://api.devnet.solana.com/")
+		const k = await conn.getBalance(a_clientWalletAccount.publicKey)
 		const SEED = '11111111112222222222333333333320' // spl token
 		// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
 		newDataAccount = await anchor.web3.PublicKey.createWithSeed(
