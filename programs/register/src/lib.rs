@@ -1,10 +1,13 @@
+#![allow(unused)]
 use anchor_lang::prelude::*;
 use dao::program::Dao;
 use dao::{self, ProgramAccountInfo};
-use std::time::SystemTime;
+// use std::time::SystemTime;
+use solana_program::clock::Clock;
 use dao::cpi::accounts::SetData;
 
-declare_id!("7xESfHY92n9LZ5GteyQX5hsJrj8kKfeYssh69TL1w3BM");
+// declare_id!("7xESfHY92n9LZ5GteyQX5hsJrj8kKfeYssh69TL1w3BM"); // juna
+declare_id!("BkZnVzwwiCfvZaF9EL57SjwS1dJquRJ596x8DGckrvvV"); // shlee
 
 #[program]
 pub mod register {
@@ -27,20 +30,18 @@ pub mod register {
 		};
 		// account_data.level += is_deposit as u32;
 		if is_deposit {
-			// account_data.level += is_deposit as u32;
 			account_data.power = 1.01_f64.powf((account_data.level - 1) as f64) as u32 * 1000;
 			account_data.level = 1 + ((account_data.exp / 50) as f64).sqrt().round() as u32;
-			// account_data.exp_per_minute = account_data.power / 600;
-			// account_data.registered_at = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
-			// account_data.region = "BASEMENT".to_string();
+			account_data.exp_per_minute = account_data.power / 600; // 시간당 10%인데 이러면 나머지가 날아감
+			account_data.registered_at = Clock::get().unwrap().unix_timestamp as u32;
+			account_data.region = "BASEMENT".to_string();
 		} else {
-			// account_data.level -= is_deposit as u32;
-			// let time_elapsed: u64 = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs() - account_data.registered_at;
-			// account_data.region = "00000000".to_string();
-			// account_data.registered_at = 0;
-			// account_data.exp += ((time_elapsed as u32) / 60) * account_data.exp_per_minute;
-			// account_data.level = 1 + ((account_data.exp / 50) as f64).sqrt().round() as u32;
-			// account_data.exp_per_minute = 0;
+			let time_elapsed = Clock::get().unwrap().unix_timestamp as u32 - account_data.registered_at;
+			account_data.region = "00000000".to_string();
+			account_data.registered_at = 0;
+			account_data.exp += ((time_elapsed as u32) / 60) * account_data.exp_per_minute;
+			account_data.level = 1 + ((account_data.exp / 50) as f64).sqrt().round() as u32;
+			account_data.exp_per_minute = 0;
 		}
 		
 		let cpi_accounts = SetData {

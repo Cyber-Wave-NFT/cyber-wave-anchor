@@ -876,6 +876,7 @@ version = "0.0.1"
 dependencies = [
  "anchor-lang",
  "dao",
+ "solana-program",
 ]
 
 [[package]]

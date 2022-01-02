@@ -2,17 +2,17 @@ import * as anchor from '@project-serum/anchor'
 import { AccountInfo } from '@solana/spl-token'
 import * as borsh from 'borsh'
 class ProgramAccountInfo {
-	level = 0
+	level = 1
 	exp = 0
 	power = 0
 	registered_at = 0
 	exp_per_minute = 0
-	character_pubkey = ""
-	weapon_pubkey = ""
+	character_pubkey = "00000000000000000000000000000000"
+	weapon_pubkey = "00000000000000000000000000000000"
 	boost = 0
 	stunned_at = 0
 	ability_used_at = 0
-	region = ""
+	region = "00000000"
 	constructor(fields: {
 		level: number, 
 		exp: number,
@@ -66,16 +66,14 @@ describe('cpi', () => {
 	const provider = anchor.Provider.local("https://api.devnet.solana.com")
 	console.log(provider.wallet.publicKey.toBase58())
 	anchor.setProvider(provider)
-
-
 	
 	// DAO 프로그램, register 프로그램 가져오기
 	const dao = anchor.workspace.Dao
 	const register = anchor.workspace.Register
 
 	// 로컬 월렛 키페어 가져오기
-	const aKey = Buffer.from([194,247,80,243,85,43,70,110,30,50,140,20,228,33,227,7,116,243,56,210,37,188,210,203,37,84,28,35,223,36,172,219,137,217,186,125,7,222,191,70,53,192,235,235,77,111,169,91,176,251,255,148,10,122,240,81,246,26,138,236,116,9,250,104])
-	const bKey = Buffer.from([182,218,165,125,105,218,250,172,86,209,102,1,218,251,206,177,250,78,56,113,20,4,22,171,78,111,161,40,244,247,244,144,57,245,94,190,210,65,28,230,82,227,71,169,143,213,13,89,123,225,138,180,163,29,68,0,88,235,40,114,106,104,234,184])
+	const aKey = Buffer.from([146,219,107,202,40,70,152,107,243,15,197,169,181,103,176,60,200,8,217,218,80,70,10,16,160,239,211,23,32,22,123,209,114,199,53,40,48,182,79,148,11,105,50,209,175,133,180,244,57,166,121,73,128,147,52,18,178,198,209,38,157,114,25,64])
+	const bKey = Buffer.from([27,81,124,213,249,242,152,45,212,167,200,161,9,96,58,203,232,4,201,30,99,191,222,174,66,178,120,40,80,181,162,2,123,181,112,155,206,105,144,205,15,98,43,19,29,175,201,37,106,60,94,158,35,195,120,224,95,239,53,54,67,86,118,185])
 
 	// 클라이언트 월렛 어카운트
 	const aClientWalletAccount = anchor.web3.Keypair.fromSecretKey(aKey)
@@ -92,10 +90,10 @@ describe('cpi', () => {
 		new ProgramAccountInfo(),
 	  ).length + 8
 	it('Check and create Dao Data Account', async () => {
-		const SEED = 'test_3' // spl token
+		const SEED = 'test_3333333' // spl token
 		// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
 		newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
-			bClientWalletAccount.publicKey,
+			aClientWalletAccount.publicKey,
 			SEED,
 			dao.programId
 		)
@@ -115,8 +113,8 @@ describe('cpi', () => {
 			let createNewAccDao = new anchor.web3.Transaction().add(
 				// create account
 				anchor.web3.SystemProgram.createAccountWithSeed({
-					fromPubkey: aClientWalletAccount.publicKey,
-					basePubkey: bClientWalletAccount.publicKey,
+					fromPubkey: bClientWalletAccount.publicKey,
+					basePubkey: aClientWalletAccount.publicKey,
 					seed: SEED,
 					newAccountPubkey: newDataAccountPubkey,
 					lamports,
@@ -126,7 +124,7 @@ describe('cpi', () => {
 			)
 
 			// 트랜잭션 실제 발생
-			await dao.provider.send(createNewAccDao, [aClientWalletAccount])
+			await dao.provider.send(createNewAccDao, [aClientWalletAccount, bClientWalletAccount])
 			const tx = await dao.rpc.initialize({
 				accounts: {
 					myAccount: newDataAccountPubkey,
@@ -160,12 +158,14 @@ describe('cpi', () => {
 			console.log("is it deposit?")
 			console.log(newDataAccountPubkey.toBase58())
 
-			const isDeposit = true
+			const isDeposit = false
 			const dataAccount = await dao.account.programAccountInfo.fetch(newDataAccountPubkey)
-			if (isDeposit && dataAccount['registered_at'] !== 0) {
+			if (isDeposit && dataAccount['registeredAt'] !== 0) {
 				console.log("You are trying to register but Already registered")
-			} else if (!isDeposit && dataAccount['registered_at'] === 0) {
+				return
+			} else if (!isDeposit && dataAccount['registeredAt'] === 0) {
 				console.log("You are trying to unregister but isn't Registered.")
+				return
 			}
 
 			await register.rpc.register(isDeposit, {
