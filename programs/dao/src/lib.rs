@@ -25,15 +25,6 @@ pub mod dao {
 
 		Ok(())
 	}
-
-	pub fn set_region_data(ctx: Context<SetRegionData>, data: RegionInfo) -> ProgramResult {
-		let account_data = &mut ctx.accounts.account;
-		account_data.region_1_power = data.region_1_power;
-		account_data.region_2_power = data.region_2_power;
-		account_data.region_3_power = data.region_3_power;
-		account_data.region_4_power = data.region_4_power;
-		Ok(())
-	}
 }
 
 #[derive(Accounts)]
@@ -60,22 +51,8 @@ pub struct ProgramAccountInfo {
 	pub region: String
 }
 
-#[account]
-pub struct RegionInfo {
-	pub region_1_power: u32,
-	pub region_2_power: u32,
-	pub region_3_power: u32,
-	pub region_4_power: u32,
-}
-
 #[derive(Accounts)]
 pub struct SetData<'info> {
 	#[account(mut)]
 	pub account: Account<'info, ProgramAccountInfo>,
-}
-
-#[derive(Accounts)]
-pub struct SetRegionData<'info> {
-	#[account(mut)]
-	pub account: Account<'info, RegionInfo>,
 }
