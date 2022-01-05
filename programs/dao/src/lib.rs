@@ -11,15 +11,15 @@ pub mod dao {
 		account_data.level = 1;
 		account_data.exp = 0;
 		account_data.power = 1000;
-		account_data.registered_at = 0;
-		account_data.exp_per_minute = 0;
+		account_data.last_calculated_at = 0;
+		account_data.account_pubkey = "00000000000000000000000000000000".to_string();
 		account_data.character_pubkey = "00000000000000000000000000000000".to_string();
 		account_data.weapon_pubkey = "00000000000000000000000000000000".to_string();
 		account_data.boost = 0;
 		account_data.stunned_at = 0;
 		account_data.ability_used_at = 0;
 		account_data.region = "00000000".to_string();
-		
+
 		Ok(())
 	}
 
@@ -28,8 +28,8 @@ pub mod dao {
 		account_data.level = data.level;
 		account_data.exp = data.exp;
 		account_data.power = data.power;
-		account_data.registered_at = data.registered_at;
-		account_data.exp_per_minute = data.exp_per_minute;
+		account_data.last_calculated_at = data.last_calculated_at;
+		account_data.account_pubkey = data.account_pubkey;
 		account_data.character_pubkey = data.character_pubkey;
 		account_data.weapon_pubkey = data.weapon_pubkey;
 		account_data.boost = data.boost;
@@ -55,8 +55,8 @@ pub struct ProgramAccountInfo {
 	pub level: u32,
 	pub exp: u32,
 	pub power: u32,
-	pub registered_at: u32,
-	pub exp_per_minute: u32,
+	pub last_calculated_at: u32,
+	pub account_pubkey: String,
 	pub character_pubkey: String,
 	pub weapon_pubkey: String,
 	pub boost: u32,

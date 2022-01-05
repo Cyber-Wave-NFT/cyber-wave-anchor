@@ -1,12 +1,13 @@
 import * as anchor from '@project-serum/anchor'
-import { AccountInfo } from '@solana/spl-token'
+import { clusterApiUrl, Connection, Keypair, Transaction, SystemProgram } from "@solana/web3.js";
+import { Token, TOKEN_PROGRAM_ID, MintLayout, AccountLayout } from "@solana/spl-token";
 import * as borsh from 'borsh'
 class ProgramAccountInfo {
 	level = 1
 	exp = 0
 	power = 0
-	registered_at = 0
-	exp_per_minute = 0
+	last_calculated_at = 0
+	account_pubkey = "00000000000000000000000000000000"
 	character_pubkey = "00000000000000000000000000000000"
 	weapon_pubkey = "00000000000000000000000000000000"
 	boost = 0
@@ -17,8 +18,8 @@ class ProgramAccountInfo {
 		level: number, 
 		exp: number,
 		power: number,
-		registered_at: number,
-		exp_per_minute: number,
+		last_calculated_at: number,
+		account_pubkey: string,
 		character_pubkey: string,
 		weapon_pubkey: string,
 		boost: number,
@@ -30,8 +31,8 @@ class ProgramAccountInfo {
 			this.level = fields.level;
 			this.exp = fields.exp;
 			this.power = fields.power;
-			this.registered_at = fields.registered_at;
-			this.exp_per_minute = fields.exp_per_minute;
+			this.last_calculated_at = fields.last_calculated_at;
+			this.account_pubkey = fields.account_pubkey;
 			this.character_pubkey = fields.character_pubkey;
 			this.weapon_pubkey = fields.weapon_pubkey;
 			this.boost = fields.boost;
@@ -50,8 +51,8 @@ const ProgramAccountInfoSchema = new Map([
 		['level', 'u32'],
 		['exp', 'u32'],
 		['power', 'u32'],
-		['registered_at', 'u64'],
-		['exp_per_minute', 'u32'],
+		['last_calculated_at', 'u64'],
+		['account_pubkey', 'String'],
 		['character_pubkey', 'String'],
 		['weapon_pubkey', 'String'],
 		['boost', 'u32'],
@@ -90,7 +91,7 @@ describe('cpi', () => {
 		new ProgramAccountInfo(),
 	  ).length + 8
 	it('Check and create Dao Data Account', async () => {
-		const SEED = 'test_3333333' // spl token
+		const SEED = 'nft_2000' // spl token
 		// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
 		newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 			aClientWalletAccount.publicKey,
@@ -153,30 +154,47 @@ describe('cpi', () => {
 		}
 	})
 
-	it('Send transaction to register program', async () => {
+	it('Send transaction to register program and send SPL_TOKEN', async () => {
+		let mint;
+		let sender_token;
+		let receiver;
+		let receiver_token;
+
 		try {
 			console.log("is it deposit?")
 			console.log(newDataAccountPubkey.toBase58())
 
 			const isDeposit = false
 			const dataAccount = await dao.account.programAccountInfo.fetch(newDataAccountPubkey)
-			if (isDeposit && dataAccount['registeredAt'] !== 0) {
-				console.log("You are trying to register but Already registered")
-				return
-			} else if (!isDeposit && dataAccount['registeredAt'] === 0) {
-				console.log("You are trying to unregister but isn't Registered.")
-				return
+
+			// NFT owner를 바꾸는 식으로 구현한 다음
+			// NFT의 onwer를 확인하여 등록여부를 확인하는거로 바뀌어야함
+			// if (isDeposit && dataAccount['registeredAt'] !== 0) {
+			// 	console.log("You are trying to register but Already registered")
+			// 	return
+			// } else if (!isDeposit && dataAccount['registeredAt'] === 0) {
+			// 	console.log("You are trying to unregister but isn't Registered.")
+			// 	return
+			// }
+
+			if (isDeposit) {
+				await register.rpc.register({
+					accounts: {
+						myAccount: newDataAccountPubkey,
+						daoProgram: dao.programId,
+					},
+				})
+			} else {
+				await register.rpc.unregister({
+					accounts: {
+						myAccount: newDataAccountPubkey,
+						daoProgram: dao.programId,
+					},
+				})
 			}
 
-			await register.rpc.register(isDeposit, {
-				accounts: {
-					myAccount: newDataAccountPubkey,
-					daoProgram: dao.programId,
-				},
-			})
-
 			const result = await dao.account.programAccountInfo.fetch(newDataAccountPubkey)
-			console.log(result['level'])
+			console.log(result)
 			// expect(result['level']).toBe(1)
 		} catch (err) {
 			console.log(err)
