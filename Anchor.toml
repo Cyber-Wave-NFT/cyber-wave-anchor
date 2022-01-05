@@ -1,5 +1,4 @@
 [programs.devnet]
-dao = "GdySSAQ5BGoa11mUHoHDeJZdmyZQbreguyBJLu8XMvS9"
 register = "7xESfHY92n9LZ5GteyQX5hsJrj8kKfeYssh69TL1w3BM"
 
 [registry]

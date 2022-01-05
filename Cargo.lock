@@ -468,13 +468,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dao"
-version = "0.0.1"
-dependencies = [
- "anchor-lang",
-]
-
-[[package]]
 name = "digest"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -919,7 +912,6 @@ version = "0.0.1"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
- "dao",
  "solana-program",
 ]
 

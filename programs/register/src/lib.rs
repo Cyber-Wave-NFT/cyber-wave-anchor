@@ -1,13 +1,10 @@
 #![allow(unused)]
 use anchor_lang::prelude::*;
-use dao::program::Dao;
-use dao::{self, ProgramAccountInfo};
 use solana_program::clock::Clock;
-use dao::cpi::accounts::SetData;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
-// declare_id!("7xESfHY92n9LZ5GteyQX5hsJrj8kKfeYssh69TL1w3BM"); // juna
-declare_id!("BkZnVzwwiCfvZaF9EL57SjwS1dJquRJ596x8DGckrvvV"); // shlee
+declare_id!("7xESfHY92n9LZ5GteyQX5hsJrj8kKfeYssh69TL1w3BM"); // juna
+// declare_id!("BkZnVzwwiCfvZaF9EL57SjwS1dJquRJ596x8DGckrvvV"); // shlee
 
 #[program]
 pub mod register {
@@ -16,6 +13,22 @@ pub mod register {
 	const EXP_LIMIT: u32 = 2_000_000;
 
 	use super::*;
+	pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+		let account_data = &mut ctx.accounts.my_account;
+		account_data.level = 1;
+		account_data.exp = 0;
+		account_data.power = 1000;
+		account_data.last_calculated_at = 0;
+		account_data.account_pubkey = "00000000000000000000000000000000".to_string();
+		account_data.character_pubkey = "00000000000000000000000000000000".to_string();
+		account_data.weapon_pubkey = "00000000000000000000000000000000".to_string();
+		account_data.boost = 0;
+		account_data.stunned_at = 0;
+		account_data.ability_used_at = 0;
+		account_data.region = "00000000".to_string();
+
+		Ok(())
+	}
     pub fn transfer_wrapper(ctx: Context<TransferWrapper>, amount: u64) -> ProgramResult {
         msg!("starting tokens: {}", ctx.accounts.sender_token.amount);
         token::transfer(ctx.accounts.transfer_ctx(), amount)?;
@@ -25,20 +38,7 @@ pub mod register {
     }
 
 	pub fn register(ctx: Context<Register>) -> ProgramResult {
-		let cpi_program = ctx.accounts.dao_program.to_account_info();
-		let mut account_data = ProgramAccountInfo {
-			level: ctx.accounts.my_account.level,
-			exp: ctx.accounts.my_account.exp,
-			power: ctx.accounts.my_account.power,
-			last_calculated_at: ctx.accounts.my_account.last_calculated_at,
-			account_pubkey: ctx.accounts.my_account.account_pubkey.clone(),
-			character_pubkey: ctx.accounts.my_account.character_pubkey.clone(),
-			weapon_pubkey: ctx.accounts.my_account.weapon_pubkey.clone(),
-			boost: ctx.accounts.my_account.boost,
-			stunned_at: ctx.accounts.my_account.stunned_at,
-			ability_used_at: ctx.accounts.my_account.ability_used_at,
-			region: ctx.accounts.my_account.region.clone()
-		};
+		let mut account_data = &mut ctx.accounts.my_account;
 
 		// register logic
 		account_data.power = 1.01_f64.powf((account_data.level - 1) as f64) as u32 * 1000; 	// 1% power up per level up 1.01^(level - 1) * 1000(default power)
@@ -49,34 +49,12 @@ pub mod register {
 		// 추가 필요 목록
 		// account pubKey
 		// NFT pubKey
-
-		// Set Data to DAO Program
-		let cpi_accounts = SetData {
-			account: ctx.accounts.my_account.to_account_info(),
-		};
-		let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-		dao::cpi::set_data(cpi_ctx, account_data)?;
 		Ok(())
 	}
 
 	pub fn unregister(ctx: Context<Register>) -> ProgramResult {
 		use std::cmp;
-
-		let cpi_program = ctx.accounts.dao_program.to_account_info();
-		let mut account_data = ProgramAccountInfo {
-			level: ctx.accounts.my_account.level,
-			exp: ctx.accounts.my_account.exp,
-			power: ctx.accounts.my_account.power,
-			last_calculated_at: ctx.accounts.my_account.last_calculated_at,
-			account_pubkey: ctx.accounts.my_account.account_pubkey.clone(),
-			character_pubkey: ctx.accounts.my_account.character_pubkey.clone(),
-			weapon_pubkey: ctx.accounts.my_account.weapon_pubkey.clone(),
-			boost: ctx.accounts.my_account.boost,
-			stunned_at: ctx.accounts.my_account.stunned_at,
-			ability_used_at: ctx.accounts.my_account.ability_used_at,
-			region: ctx.accounts.my_account.region.clone()
-		};
-
+		let mut account_data =  &mut ctx.accounts.my_account;
 		// unregister logic
 		account_data.region = "00000000".to_string();	// region clear
 
@@ -87,15 +65,16 @@ pub mod register {
 			// next level total exp - current exp
 			// 50 * (current level + 1)^2 - current exp
 			let need_exp_to_level_up = 50 * ((account_data.level + 1) as f64).powf(2_f64) as u32 - account_data.exp;
-			let need_time_to_level_up = ((need_exp_to_level_up as f64 / (account_data.power as f64 / 600_f64)) * 60_f64) as u32;
+			let need_time_to_level_up = ((need_exp_to_level_up as f64 / (account_data.power as f64 / 3600_f64))) as u32;
 
 			if need_time_to_level_up <= time_elapsed {
 				// account_data.exp += ((need_time_to_level_up as f64 / 60_f64) * (account_data.power as f64 / 600_f64)) as u32;
 				account_data.exp += need_exp_to_level_up;
 				account_data.level += 1;
-				account_data.power = 1.01_f64.powf((account_data.level - 1) as f64) as u32 * 1000;
+				account_data.power = 1000;
 			} else {
 				account_data.exp += ((time_elapsed as f64 / 60_f64) * (account_data.power as f64 / 600_f64)) as u32;
+				break;
 			}
 			time_elapsed -= need_time_to_level_up;
 		}
@@ -103,13 +82,6 @@ pub mod register {
 
 		// cannot exceed MAX Exp
 		account_data.exp = cmp::max(account_data.exp, EXP_LIMIT);
-
-		// Set Data to DAO Program
-		let cpi_accounts = SetData {
-			account: ctx.accounts.my_account.to_account_info(),
-		};
-		let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
-		dao::cpi::set_data(cpi_ctx, account_data)?;
 		Ok(())
 	}
 }
@@ -117,8 +89,7 @@ pub mod register {
 #[derive(Accounts)]
 pub struct Register<'info> {
 	#[account(mut)]
-	pub my_account: Account<'info, ProgramAccountInfo>,
-	pub dao_program: Program<'info, Dao>,
+	pub my_account: Account<'info, ProgramAccountInfo>
 }
 
 #[derive(Accounts)]
@@ -143,4 +114,28 @@ impl<'info> TransferWrapper<'info> {
             },
         )
     }
+}
+
+#[account]
+pub struct ProgramAccountInfo {
+	pub level: u32,
+	pub exp: u32,
+	pub power: u32,
+	pub last_calculated_at: u32,
+	pub account_pubkey: String,
+	pub character_pubkey: String,
+	pub weapon_pubkey: String,
+	pub boost: u32,
+	pub stunned_at: u32,
+	pub ability_used_at: u32,
+	pub region: String
+}
+
+#[derive(Accounts)]
+pub struct Initialize<'info> {
+	#[account(zero)]
+	pub my_account: Account<'info, ProgramAccountInfo>,
+	#[account(mut)]
+	pub user: Signer<'info>,
+	pub system_program: Program<'info, System>,
 }
