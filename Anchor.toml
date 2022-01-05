@@ -1,5 +1,6 @@
 [programs.devnet]
 register = "7xESfHY92n9LZ5GteyQX5hsJrj8kKfeYssh69TL1w3BM"
+wave_size_calculation = "3Kxeg4njnqwswLdBdqmfnGVdctSddVXU4Ti5VFEyZ8wC"
 
 [registry]
 url = "https://anchor.projectserum.com"

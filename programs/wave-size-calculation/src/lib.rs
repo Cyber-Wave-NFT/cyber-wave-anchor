@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
-use dao::program::Dao;
 
-declare_id!("7xESfHY92n9LZ5GteyQX5hsJrj8kKfeYssh69TL1w3BM");
+declare_id!("3Kxeg4njnqwswLdBdqmfnGVdctSddVXU4Ti5VFEyZ8wC");
 
 #[program]
 pub mod wave_size_calculation {
@@ -46,6 +45,5 @@ pub struct SetRegionData<'info> {
 #[derive(Accounts)]
 pub struct WaveSizeCalc<'info> {
 	#[account(mut)]
-	pub central_region_account: Account<'info, RegionInfo>,
-	pub dao_program: Program<'info, Dao>,
+	pub central_region_account: Account<'info, RegionInfo>
 }

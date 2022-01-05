@@ -71,7 +71,7 @@ pub mod register {
 				// account_data.exp += ((need_time_to_level_up as f64 / 60_f64) * (account_data.power as f64 / 600_f64)) as u32;
 				account_data.exp += need_exp_to_level_up;
 				account_data.level += 1;
-				account_data.power = 1000;
+				account_data.power = 1.01_f64.powf((account_data.level - 1) as f64) as u32 * 1000;
 			} else {
 				account_data.exp += ((time_elapsed as f64 / 60_f64) * (account_data.power as f64 / 600_f64)) as u32;
 				break;

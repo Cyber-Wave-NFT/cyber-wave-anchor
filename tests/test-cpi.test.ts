@@ -33,7 +33,7 @@ describe('cpi', () => {
 		new ProgramAccountInfo(),
 	  ).length + 8
 	it('Check and create Dao Data Account', async () => {
-		const SEED = 'nft_200012' // spl token
+		const SEED = 'nft_20123' // spl token
 		// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
 		newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 			aClientWalletAccount.publicKey,
@@ -82,7 +82,6 @@ describe('cpi', () => {
 
 				},
 			})
-			const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 			console.log('Your transaction signature', tx)
 			console.log(`newDataAccount:${newDataAccountPubkey}`)
 

@@ -10,7 +10,6 @@ describe('cpi', () => {
 	anchor.setProvider(provider)
 
 	// DAO 프로그램, register 프로그램 가져오기
-	const dao = anchor.workspace.Dao
 	const register = anchor.workspace.Register
 	const waveSizeCalculation = anchor.workspace.WaveSizeCalculation
 
@@ -25,16 +24,10 @@ describe('cpi', () => {
 	console.log(clientWalletAccount.publicKey.toBase58())
 	console.log(b_clientWalletAccount.publicKey.toBase58())
 
-	let newDataAccount: anchor.web3.PublicKey
-
-	const SIZE = borsh.serialize(
-		ProgramAccountInfoSchema,
-		new ProgramAccountInfo(),
-	  ).length + 8
 	it('test amu', async () => {
 
 		const conn = new anchor.web3.Connection("https://api.devnet.solana.com/")
-		const k = await conn.getProgramAccounts(dao.programId)
+		const k = await conn.getProgramAccounts(register.programId)
 		const kk = k.filter((elem) => (elem.account.data.length === 56)).map((elem) => {
 			console.log(elem.account.data.length)
 			const slicedData = elem.account.data.slice(8, elem.account.data.length)
@@ -47,43 +40,6 @@ describe('cpi', () => {
 			console.log(pp)
 			return pp
 		})
-		// newDataAccount가 가지고있는 DAO 소속 data account
-		const dataAccount = await dao.provider.connection.getAccountInfo(newDataAccount)
-		// data account가 null이면 DAO가 홀딩하는 data account를 만들어준다.
-		// null이 아니면 그냥 해당 데이터 어카운트를 사용한다.
-		if (dataAccount === null) {
-			console.log('Creating account', newDataAccount.toBase58(), 'to say hello to')
-
-			const tx = await dao.rpc.initialize({
-				accounts: {
-					myAccount: newDataAccount,
-					user: provider.wallet.publicKey,
-					systemProgram: anchor.web3.SystemProgram.programId,
-				},
-				signers: [],
-			})
-			console.log('Your transaction signature', tx)
-			console.log(`newDataAccount:${newDataAccount}`)
-		} else {
-			console.log('success')
-			console.log(newDataAccount.toBase58())
-		}
 	})
 
-	it('Send transaction to register program', async () => {
-		try {
-			await register.rpc.register(new anchor.BN(1), {
-				accounts: {
-					myAccount: newDataAccount,
-					daoProgram: dao.programId,
-				},
-			})
-
-			const result = await dao.account.programAccountInfo.fetch(newDataAccount)
-			console.log(result['level'])
-			expect(result['level']).toBe(1)
-		} catch (err) {
-			throw new Error()
-		}
-	})
 })
