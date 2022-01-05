@@ -2,8 +2,65 @@ import * as anchor from '@project-serum/anchor'
 import { clusterApiUrl, Connection, Keypair, Transaction, SystemProgram } from "@solana/web3.js";
 import { Token, TOKEN_PROGRAM_ID, MintLayout, AccountLayout } from "@solana/spl-token";
 import * as borsh from 'borsh'
-import { ProgramAccountInfo, ProgramAccountInfoSchema } from './borsh.classes'
-
+class ProgramAccountInfo {
+	level = 1
+	exp = 0
+	power = 0
+	last_calculated_at = 0
+	account_pubkey = "00000000000000000000000000000000"
+	character_pubkey = "00000000000000000000000000000000"
+	weapon_pubkey = "00000000000000000000000000000000"
+	boost = 0
+	stunned_at = 0
+	ability_used_at = 0
+	region = "00000000"
+	constructor(fields: {
+		level: number, 
+		exp: number,
+		power: number,
+		last_calculated_at: number,
+		account_pubkey: string,
+		character_pubkey: string,
+		weapon_pubkey: string,
+		boost: number,
+		stunned_at: number,
+		ability_used_at: number,
+		region: string
+	} | undefined = undefined) {
+		if (fields) {
+			this.level = fields.level;
+			this.exp = fields.exp;
+			this.power = fields.power;
+			this.last_calculated_at = fields.last_calculated_at;
+			this.account_pubkey = fields.account_pubkey;
+			this.character_pubkey = fields.character_pubkey;
+			this.weapon_pubkey = fields.weapon_pubkey;
+			this.boost = fields.boost;
+			this.stunned_at = fields.stunned_at;
+			this.ability_used_at = fields.ability_used_at;
+			this.region = fields.region;
+		}
+	}
+}
+  
+/**
+ * Borsh schema definition for greeting accounts
+ */
+const ProgramAccountInfoSchema = new Map([
+	[ProgramAccountInfo, {kind: 'struct', fields: [
+		['level', 'u32'],
+		['exp', 'u32'],
+		['power', 'u32'],
+		['last_calculated_at', 'u64'],
+		['account_pubkey', 'String'],
+		['character_pubkey', 'String'],
+		['weapon_pubkey', 'String'],
+		['boost', 'u32'],
+		['stunned_at', 'u32'],
+		['ability_used_at', 'u32'],
+		['region', 'String']
+	]}],
+])
 jest.setTimeout(30000000)
 describe('cpi', () => {
 	// Configure the client to use the local cluster.
@@ -15,9 +72,8 @@ describe('cpi', () => {
 	const register = anchor.workspace.Register
 
 	// 로컬 월렛 키페어 가져오기
-	const aKey = Buffer.from([146,219,107,202,40,70,152,107,243,15,197,169,181,103,176,60,200,8,217,218,80,70,10,16,160,239,211,23,32,22,123,209,114,199,53,40,48,182,79,148,11,105,50,209,175,133,180,244,57,166,121,73,128,147,52,18,178,198,209,38,157,114,25,64])
-	const bKey = Buffer.from([27,81,124,213,249,242,152,45,212,167,200,161,9,96,58,203,232,4,201,30,99,191,222,174,66,178,120,40,80,181,162,2,123,181,112,155,206,105,144,205,15,98,43,19,29,175,201,37,106,60,94,158,35,195,120,224,95,239,53,54,67,86,118,185])
-
+	const aKey = Buffer.from([27,81,124,213,249,242,152,45,212,167,200,161,9,96,58,203,232,4,201,30,99,191,222,174,66,178,120,40,80,181,162,2,123,181,112,155,206,105,144,205,15,98,43,19,29,175,201,37,106,60,94,158,35,195,120,224,95,239,53,54,67,86,118,185])
+	const bKey = Buffer.from([182,218,165,125,105,218,250,172,86,209,102,1,218,251,206,177,250,78,56,113,20,4,22,171,78,111,161,40,244,247,244,144,57,245,94,190,210,65,28,230,82,227,71,169,143,213,13,89,123,225,138,180,163,29,68,0,88,235,40,114,106,104,234,184])
 	// 클라이언트 월렛 어카운트
 	const aClientWalletAccount = anchor.web3.Keypair.fromSecretKey(aKey)
 	const bClientWalletAccount = anchor.web3.Keypair.fromSecretKey(bKey)
@@ -33,7 +89,7 @@ describe('cpi', () => {
 		new ProgramAccountInfo(),
 	  ).length + 8
 	it('Check and create Dao Data Account', async () => {
-		const SEED = 'nft_20123' // spl token
+		const SEED = 'nft_20001213' // spl token
 		// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
 		newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 			aClientWalletAccount.publicKey,
@@ -82,6 +138,7 @@ describe('cpi', () => {
 
 				},
 			})
+			const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 			console.log('Your transaction signature', tx)
 			console.log(`newDataAccount:${newDataAccountPubkey}`)
 
@@ -103,7 +160,7 @@ describe('cpi', () => {
 			console.log("is it deposit?")
 			console.log(newDataAccountPubkey.toBase58())
 
-			const isDeposit = false
+			const isDeposit = true
 			const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 
 			// NFT owner를 바꾸는 식으로 구현한 다음
@@ -129,7 +186,11 @@ describe('cpi', () => {
 					},
 				})
 			}
-
+			await register.rpc.moveRegion(new anchor.BN(2), {
+				accounts: {
+					myAccount: newDataAccountPubkey
+				},
+			})
 			const result = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 			console.log(result)
 			// expect(result['level']).toBe(1)

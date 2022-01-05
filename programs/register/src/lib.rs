@@ -37,6 +37,23 @@ pub mod register {
         Ok(())
     }
 
+	pub fn move_region(ctx: Context<Register>, data: u32) -> ProgramResult {
+		let mut account_data = &mut ctx.accounts.my_account;
+		if data == 1 {
+			account_data.region = "REGION_1".to_string()
+		}
+		if data == 2 {
+			account_data.region = "REGION_2".to_string()
+		}
+		if data == 3 {
+			account_data.region = "REGION_3".to_string()
+		}
+		if data == 4 {
+			account_data.region = "REGION_4".to_string()
+		}
+		Ok(())
+	}
+
 	pub fn register(ctx: Context<Register>) -> ProgramResult {
 		let mut account_data = &mut ctx.accounts.my_account;
 
