@@ -79,7 +79,7 @@ describe('cpi', () => {
 		const random4 = Math.random()
 		const allRandom = random1 + random2 + random3 + random4
 		await waveSizeCalculation.rpc.sizeCalculate(
-			new anchor.BN(12345),
+			new anchor.BN(res),
 			new anchor.BN(Math.round((random1 / allRandom) * 100)),
 			new anchor.BN(Math.round((random2 / allRandom) * 100)),
 			new anchor.BN(Math.round((random3 / allRandom) * 100)),
