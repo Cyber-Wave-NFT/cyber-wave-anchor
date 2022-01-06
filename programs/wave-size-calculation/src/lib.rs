@@ -6,10 +6,14 @@ declare_id!("3Kxeg4njnqwswLdBdqmfnGVdctSddVXU4Ti5VFEyZ8wC");
 pub mod wave_size_calculation {
 	use super::*;
 
-	pub fn size_calculate(ctx: Context<WaveSizeCalc>, region_1_power: u32, region_2_power: u32, region_3_power: u32, region_4_power: u32) -> ProgramResult {
+	pub fn size_calculate(ctx: Context<WaveSizeCalc>, power_all: u32, random1: u32, random2: u32, random3: u32, random4: u32) -> ProgramResult {
 
 		const POWER_CONST_PERCENT: u32 = 70;
 		let account_data = &mut ctx.accounts.central_region_account;
+		let region_1_power = random1 * power_all / 100;
+		let region_2_power = random2 * power_all / 100;
+		let region_3_power = random3 * power_all / 100;
+		let region_4_power = random4 * power_all / 100;
 		account_data.region_1_power = region_1_power * POWER_CONST_PERCENT / 100;
 		account_data.region_2_power = region_2_power * POWER_CONST_PERCENT / 100;
 		account_data.region_3_power = region_3_power * POWER_CONST_PERCENT / 100;

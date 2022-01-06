@@ -29,20 +29,9 @@ describe('cpi', () => {
 		const accounts = ts.map((elem: {publicKey: any, account: Object}) => (elem.account))
 		console.log(accounts)
 		const res = accounts.reduce((acc: any, cur: any) => {
-			if (cur.region === "REGION_1") {
-				acc['REGION_1'] += cur.power
-			}
-			if (cur.region === "REGION_2") {
-				acc['REGION_2'] += cur.power
-			}
-			if (cur.region === "REGION_3") {
-				acc['REGION_3'] += cur.power
-			}
-			if (cur.region === "REGION_4") {
-				acc['REGION_4'] += cur.power
-			}
+			acc += cur.power
 			return acc
-		}, {REGION_1: 0, REGION_2: 0, REGION_3: 0, REGION_4: 0})
+		}, 0)
 		const SIZE = borsh.serialize(
 			RegionInfoSchema,
 			new RegionInfo(),
@@ -84,15 +73,22 @@ describe('cpi', () => {
 				signers: [],
 			})
 		}
+		const random1 = Math.random()
+		const random2 = Math.random()
+		const random3 = Math.random()
+		const random4 = Math.random()
+		const allRandom = random1 + random2 + random3 + random4
 		await waveSizeCalculation.rpc.sizeCalculate(
-			new anchor.BN(res.REGION_1),
-			new anchor.BN(res.REGION_2),
-			new anchor.BN(res.REGION_3),
-			new anchor.BN(res.REGION_4),
+			new anchor.BN(12345),
+			new anchor.BN(Math.round((random1 / allRandom) * 100)),
+			new anchor.BN(Math.round((random2 / allRandom) * 100)),
+			new anchor.BN(Math.round((random3 / allRandom) * 100)),
+			new anchor.BN(Math.round((random4 / allRandom) * 100)),
 			{
-				accounts: {
-					centralRegionAccount: newDataAccountPubkey
-				}
+			accounts: {
+				centralRegionAccount: newDataAccountPubkey,
+			},
+			signers: [],
 		})
 		const result = await waveSizeCalculation.account.regionInfo.fetch(newDataAccountPubkey)
 		console.log(result)
