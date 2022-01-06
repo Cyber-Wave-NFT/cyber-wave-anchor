@@ -32,10 +32,10 @@ describe('cpi', () => {
 		new ProgramAccountInfo(),
 	  ).length + 8
 	it('Check and create Dao Data Account', async () => {
-		const SEED = 'nft_20001213' // spl token
+		const SEED = 'nft_2123123' // spl token
 		// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
 		newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
-			bClientWalletAccount.publicKey,
+			aClientWalletAccount.publicKey,
 			SEED,
 			register.programId
 		)
@@ -102,7 +102,7 @@ describe('cpi', () => {
 			console.log("is it deposit?")
 			console.log(newDataAccountPubkey.toBase58())
 
-			const isDeposit = true
+			const isDeposit = false
 			const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 
 			// NFT owner를 바꾸는 식으로 구현한 다음
@@ -128,11 +128,11 @@ describe('cpi', () => {
 					},
 				})
 			}
-			await register.rpc.moveRegion(new anchor.BN(2), {
-				accounts: {
-					myAccount: newDataAccountPubkey
-				},
-			})
+			// await register.rpc.moveRegion(new anchor.BN(2), {
+			// 	accounts: {
+			// 		myAccount: newDataAccountPubkey
+			// 	},
+			// })
 			const result = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 			console.log(result)
 			// expect(result['level']).toBe(1)
