@@ -31,7 +31,18 @@ pub mod register {
 	}
     pub fn transfer_wrapper(ctx: Context<TransferWrapper>, amount: u64) -> ProgramResult {
         msg!("starting tokens: {}", ctx.accounts.sender_token.amount);
-        token::transfer(ctx.accounts.transfer_ctx(), amount)?;
+        let seeds = &[ctx.accounts.sender.key.as_ref(), ctx.accounts.sender.key.as_ref(),];
+        let signer = &[&seeds[..]];
+        let cpi_ctx = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info().clone(),
+            Transfer {
+                from: ctx.accounts.sender_token.to_account_info().clone(),
+                to: ctx.accounts.receiver_token.to_account_info().clone(),
+                authority: ctx.accounts.sender.clone(),
+            },
+            signer
+        );
+        token::transfer(cpi_ctx, amount)?;
         ctx.accounts.sender_token.reload()?;
         msg!("remaining tokens: {}", ctx.accounts.sender_token.amount);
         Ok(())
@@ -94,13 +105,13 @@ pub struct Register<'info> {
 
 #[derive(Accounts)]
 pub struct TransferWrapper<'info> {
-    pub sender: Signer<'info>,
     #[account(mut)]
     pub sender_token: Account<'info, TokenAccount>,
-    #[account(mut)]
+    #[account(constraint = sender_token.mint == receiver_token.mint)]
     pub receiver_token: Account<'info, TokenAccount>,
     pub mint: Account<'info, Mint>,
     pub token_program: Program<'info, Token>,
+    pub sender: AccountInfo<'info>,
 }
 
 impl<'info> TransferWrapper<'info> {

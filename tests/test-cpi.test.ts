@@ -68,7 +68,7 @@ describe('cpi', () => {
 	console.log(provider.wallet.publicKey.toBase58())
 	anchor.setProvider(provider)
 	
-	// DAO 프로그램, register 프로그램 가져오기
+	// register 프로그램 가져오기
 	const register = anchor.workspace.Register
 
 	// 로컬 월렛 키페어 가져오기
@@ -152,11 +152,6 @@ describe('cpi', () => {
 	})
 
 	it('Send transaction to register program and send SPL_TOKEN', async () => {
-		let mint;
-		let sender_token;
-		let receiver;
-		let receiver_token;
-
 		try {
 			console.log("is it deposit?")
 			console.log(newDataAccountPubkey.toBase58())
