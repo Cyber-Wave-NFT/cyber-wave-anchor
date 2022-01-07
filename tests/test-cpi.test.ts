@@ -32,10 +32,10 @@ describe('cpi', () => {
 		new ProgramAccountInfo(),
 	  ).length + 8
 	it('Check and create Dao Data Account', async () => {
-		const SEED = 'nft_2123123' // spl token
+		const SEED = 'nft_2123123184' // spl token
 		// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
 		newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
-			aClientWalletAccount.publicKey,
+			bClientWalletAccount.publicKey,
 			SEED,
 			register.programId
 		)
@@ -55,8 +55,8 @@ describe('cpi', () => {
 			let createNewAccDao = new anchor.web3.Transaction().add(
 				// create account
 				anchor.web3.SystemProgram.createAccountWithSeed({
-					fromPubkey: bClientWalletAccount.publicKey,
-					basePubkey: aClientWalletAccount.publicKey,
+					fromPubkey: aClientWalletAccount.publicKey,
+					basePubkey: bClientWalletAccount.publicKey,
 					seed: SEED,
 					newAccountPubkey: newDataAccountPubkey,
 					lamports,
@@ -66,8 +66,8 @@ describe('cpi', () => {
 			)
 
 			// 트랜잭션 실제 발생
-			await register.provider.send(createNewAccDao, [aClientWalletAccount, bClientWalletAccount])
-			const tx = await register.rpc.initialize({
+			const tx0 = await register.provider.send(createNewAccDao, [aClientWalletAccount, bClientWalletAccount])
+			const tx1 = await register.rpc.initialize({
 				accounts: {
 					myAccount: newDataAccountPubkey,
 					user: provider.wallet.publicKey,
@@ -75,13 +75,12 @@ describe('cpi', () => {
 				},
 				signers: [],
 			})
-			await register.rpc.register({
+			const tx2 = await register.rpc.register({
 				accounts: {
 					myAccount: newDataAccountPubkey,
 				},
 			})
 			const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
-			console.log('Your transaction signature', tx)
 			console.log(`newDataAccount:${newDataAccountPubkey}`)
 
 			let postLamports = await provider.connection.getBalance(bClientWalletAccount.publicKey)
