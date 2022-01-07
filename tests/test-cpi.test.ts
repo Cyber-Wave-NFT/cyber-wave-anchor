@@ -32,7 +32,7 @@ describe('cpi', () => {
 		new ProgramAccountInfo(),
 	  ).length + 8
 	it('Check and create Dao Data Account', async () => {
-		const SEED = 'nft_20001213' // spl token
+		const SEED = 'nft_2128184' // spl token
 		// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
 		newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 			bClientWalletAccount.publicKey,
@@ -51,37 +51,28 @@ describe('cpi', () => {
 			let prevLamports = await provider.connection.getBalance(aClientWalletAccount.publicKey)
 			console.log(prevLamports / 1000000000)
 
-			// 트랜잭션
-			let createNewAccDao = new anchor.web3.Transaction().add(
-				// create account
-				anchor.web3.SystemProgram.createAccountWithSeed({
-					fromPubkey: bClientWalletAccount.publicKey,
-					basePubkey: aClientWalletAccount.publicKey,
-					seed: SEED,
-					newAccountPubkey: newDataAccountPubkey,
-					lamports,
-					space: SIZE,
-					programId: register.programId,
-				}),
-			)
-
 			// 트랜잭션 실제 발생
-			await register.provider.send(createNewAccDao, [aClientWalletAccount, bClientWalletAccount])
-			const tx = await register.rpc.initialize({
+			const tx1 = await register.rpc.initialize({
 				accounts: {
 					myAccount: newDataAccountPubkey,
 					user: provider.wallet.publicKey,
 					systemProgram: anchor.web3.SystemProgram.programId,
 				},
-				signers: [],
-			})
-			await register.rpc.register({
-				accounts: {
-					myAccount: newDataAccountPubkey,
-				},
+				instructions: [
+					anchor.web3.SystemProgram.createAccountWithSeed({
+						fromPubkey: aClientWalletAccount.publicKey,
+						basePubkey: bClientWalletAccount.publicKey,
+						seed: SEED,
+						newAccountPubkey: newDataAccountPubkey,
+						lamports,
+						space: SIZE,
+						programId: register.programId,
+					}),
+					
+				],
+				signers: [aClientWalletAccount, bClientWalletAccount],
 			})
 			const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
-			console.log('Your transaction signature', tx)
 			console.log(`newDataAccount:${newDataAccountPubkey}`)
 
 			let postLamports = await provider.connection.getBalance(bClientWalletAccount.publicKey)
@@ -102,7 +93,7 @@ describe('cpi', () => {
 			console.log("is it deposit?")
 			console.log(newDataAccountPubkey.toBase58())
 
-			const isDeposit = true
+			const isDeposit = false
 			const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 
 			// NFT owner를 바꾸는 식으로 구현한 다음
@@ -128,11 +119,11 @@ describe('cpi', () => {
 					},
 				})
 			}
-			await register.rpc.moveRegion(new anchor.BN(2), {
-				accounts: {
-					myAccount: newDataAccountPubkey
-				},
-			})
+			// await register.rpc.moveRegion(new anchor.BN(2), {
+			// 	accounts: {
+			// 		myAccount: newDataAccountPubkey
+			// 	},
+			// })
 			const result = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 			console.log(result)
 			// expect(result['level']).toBe(1)

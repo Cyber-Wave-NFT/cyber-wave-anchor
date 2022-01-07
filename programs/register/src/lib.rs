@@ -18,14 +18,14 @@ pub mod register {
 		account_data.level = 1;
 		account_data.exp = 0;
 		account_data.power = 1000;
-		account_data.last_calculated_at = 0;
+		account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;
 		account_data.account_pubkey = "00000000000000000000000000000000".to_string();
 		account_data.character_pubkey = "00000000000000000000000000000000".to_string();
 		account_data.weapon_pubkey = "00000000000000000000000000000000".to_string();
 		account_data.boost = 0;
 		account_data.stunned_at = 0;
 		account_data.ability_used_at = 0;
-		account_data.region = "00000000".to_string();
+		account_data.region = "BASEMENT".to_string();
 
 		Ok(())
 	}
@@ -88,20 +88,19 @@ pub mod register {
 
 		// exp up occurs power up
 		// so calculate level, exp, power when has to level up
-		let mut time_elapsed = Clock::get().unwrap().unix_timestamp as u32 - account_data.last_calculated_at;
+		let mut time_elapsed = (Clock::get().unwrap().unix_timestamp as u32 - account_data.last_calculated_at) / 60;
 		while time_elapsed > 0 {
 			// next level total exp - current exp
 			// 50 * (current level + 1)^2 - current exp
 			let need_exp_to_level_up = 50 * ((account_data.level + 1) as f64).powf(2_f64) as u32 - account_data.exp;
-			let need_time_to_level_up = ((need_exp_to_level_up as f64 / (account_data.power as f64 / 3600_f64))) as u32;
-
+			let need_time_to_level_up = (((need_exp_to_level_up as f64 / (account_data.power as f64 / 10_f64)) as f64) * 60_f64) as u32;
 			if need_time_to_level_up <= time_elapsed {
 				// account_data.exp += ((need_time_to_level_up as f64 / 60_f64) * (account_data.power as f64 / 600_f64)) as u32;
 				account_data.exp += need_exp_to_level_up;
 				account_data.level += 1;
-				account_data.power = 1.01_f64.powf((account_data.level - 1) as f64) as u32 * 1000;
+				account_data.power = ((1.01_f64.powf((account_data.level - 1) as f64) * 1000_f64).round() * 1000_f64) as u32;
 			} else {
-				account_data.exp += ((time_elapsed as f64 / 60_f64) * (account_data.power as f64 / 600_f64)) as u32;
+				account_data.exp += ((time_elapsed as f64) * (account_data.power as f64 / 600_f64)) as u32;
 				break;
 			}
 			time_elapsed -= need_time_to_level_up;
@@ -109,7 +108,7 @@ pub mod register {
 		account_data.last_calculated_at = 0;					// registered at time clear
 
 		// cannot exceed MAX Exp
-		account_data.exp = cmp::max(account_data.exp, EXP_LIMIT);
+		account_data.exp = cmp::min(account_data.exp, EXP_LIMIT);
 		Ok(())
 	}
 }
