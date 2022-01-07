@@ -37,6 +37,14 @@ pub mod wave_size_calculation {
 }
 
 #[account]
+pub struct RegionResultInfo {
+	pub region_1_result: u32,
+	pub region_2_result: u32,
+	pub region_3_result: u32,
+	pub region_4_result: u32,
+}
+
+#[account]
 pub struct RegionInfo {
 	pub region_1_power: u32,
 	pub region_2_power: u32,
