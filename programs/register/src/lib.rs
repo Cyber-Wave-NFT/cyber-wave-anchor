@@ -18,14 +18,14 @@ pub mod register {
 		account_data.level = 1;
 		account_data.exp = 0;
 		account_data.power = 1000;
-		account_data.last_calculated_at = 0;
+		account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;
 		account_data.account_pubkey = "00000000000000000000000000000000".to_string();
 		account_data.character_pubkey = "00000000000000000000000000000000".to_string();
 		account_data.weapon_pubkey = "00000000000000000000000000000000".to_string();
 		account_data.boost = 0;
 		account_data.stunned_at = 0;
 		account_data.ability_used_at = 0;
-		account_data.region = "00000000".to_string();
+		account_data.region = "BASEMENT".to_string();
 
 		Ok(())
 	}
