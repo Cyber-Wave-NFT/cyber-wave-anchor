@@ -3,8 +3,7 @@ use anchor_lang::prelude::*;
 use solana_program::clock::Clock;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
-declare_id!("7xESfHY92n9LZ5GteyQX5hsJrj8kKfeYssh69TL1w3BM"); // juna
-// declare_id!("BkZnVzwwiCfvZaF9EL57SjwS1dJquRJ596x8DGckrvvV"); // shlee
+declare_id!("FnE2RPawcnWfkNrdEkqTPyh1y4oDnCDpDUJ9MXChTqUG");
 
 #[program]
 pub mod register {
@@ -15,6 +14,7 @@ pub mod register {
 	use super::*;
 	pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
 		let account_data = &mut ctx.accounts.my_account;
+		let user: &Signer = &ctx.accounts.user;
 		account_data.level = 1;
 		account_data.exp = 0;
 		account_data.power = 1000;
@@ -29,24 +29,6 @@ pub mod register {
 
 		Ok(())
 	}
-    pub fn transfer_wrapper(ctx: Context<TransferWrapper>, amount: u64) -> ProgramResult {
-        msg!("starting tokens: {}", ctx.accounts.sender_token.amount);
-        let seeds = &[ctx.accounts.sender.key.as_ref(), ctx.accounts.sender.key.as_ref(),];
-        let signer = &[&seeds[..]];
-        let cpi_ctx = CpiContext::new_with_signer(
-            ctx.accounts.token_program.to_account_info().clone(),
-            Transfer {
-                from: ctx.accounts.sender_token.to_account_info().clone(),
-                to: ctx.accounts.receiver_token.to_account_info().clone(),
-                authority: ctx.accounts.sender.clone(),
-            },
-            signer
-        );
-        token::transfer(cpi_ctx, amount)?;
-        ctx.accounts.sender_token.reload()?;
-        msg!("remaining tokens: {}", ctx.accounts.sender_token.amount);
-        Ok(())
-    }
 
 	pub fn move_region(ctx: Context<Register>, data: u32) -> ProgramResult {
 		let mut account_data = &mut ctx.accounts.my_account;
@@ -69,6 +51,7 @@ pub mod register {
 		let mut account_data = &mut ctx.accounts.my_account;
 
 		// register logic
+		account_data.account_pubkey = ctx.accounts.user.to_account_info().key.to_string();
 		account_data.power = 1.01_f64.powf((account_data.level - 1) as f64) as u32 * 1000; 	// 1% power up per level up 1.01^(level - 1) * 1000(default power)
 		account_data.level = 1 + ((account_data.exp / 50) as f64).sqrt().round() as u32; 	// total_exp = 50 * level^2
 		account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;		// register time
@@ -116,31 +99,9 @@ pub mod register {
 #[derive(Accounts)]
 pub struct Register<'info> {
 	#[account(mut)]
-	pub my_account: Account<'info, ProgramAccountInfo>
-}
-
-#[derive(Accounts)]
-pub struct TransferWrapper<'info> {
-    #[account(mut)]
-    pub sender_token: Account<'info, TokenAccount>,
-    #[account(constraint = sender_token.mint == receiver_token.mint)]
-    pub receiver_token: Account<'info, TokenAccount>,
-    pub mint: Account<'info, Mint>,
-    pub token_program: Program<'info, Token>,
-    pub sender: AccountInfo<'info>,
-}
-
-impl<'info> TransferWrapper<'info> {
-    fn transfer_ctx(&self) -> CpiContext<'_, '_, '_, 'info, Transfer<'info>> {
-        CpiContext::new(
-            self.token_program.to_account_info(),
-            Transfer {
-                from: self.sender_token.to_account_info(),
-                to: self.receiver_token.to_account_info(),
-                authority: self.sender.to_account_info(),
-            },
-        )
-    }
+	pub my_account: Account<'info, ProgramAccountInfo>,
+	#[account(mut)]
+	pub user: Signer<'info>
 }
 
 #[account]

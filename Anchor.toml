@@ -1,5 +1,5 @@
 [programs.devnet]
-register = "7xESfHY92n9LZ5GteyQX5hsJrj8kKfeYssh69TL1w3BM"
+register = "FnE2RPawcnWfkNrdEkqTPyh1y4oDnCDpDUJ9MXChTqUG"
 wave_size_calculation = "3Kxeg4njnqwswLdBdqmfnGVdctSddVXU4Ti5VFEyZ8wC"
 
 [registry]
@@ -7,7 +7,7 @@ url = "https://anchor.projectserum.com"
 
 [provider]
 cluster = "devnet"
-wallet = "~/.config/solana/id.json"
+wallet = "~/.config/solana/devnet.json"
 
 [scripts]
 test = "yarn test ./tests/test-cpi.test.ts"

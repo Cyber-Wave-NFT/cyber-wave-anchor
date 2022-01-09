@@ -17,7 +17,7 @@ export class ProgramAccountInfo {
 		last_calculated_at: number,
 		account_pubkey: String,
 		character_pubkey: String,
-		weapon_pubkey: any,
+		weapon_pubkey: String,
 		boost: number,
 		stunned_at: number,
 		ability_used_at: number,

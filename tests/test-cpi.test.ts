@@ -15,14 +15,17 @@ describe('cpi', () => {
 	const register = anchor.workspace.Register
 
 	// 로컬 월렛 키페어 가져오기
-	const aKey = Buffer.from([27,81,124,213,249,242,152,45,212,167,200,161,9,96,58,203,232,4,201,30,99,191,222,174,66,178,120,40,80,181,162,2,123,181,112,155,206,105,144,205,15,98,43,19,29,175,201,37,106,60,94,158,35,195,120,224,95,239,53,54,67,86,118,185])
-	const bKey = Buffer.from([182,218,165,125,105,218,250,172,86,209,102,1,218,251,206,177,250,78,56,113,20,4,22,171,78,111,161,40,244,247,244,144,57,245,94,190,210,65,28,230,82,227,71,169,143,213,13,89,123,225,138,180,163,29,68,0,88,235,40,114,106,104,234,184])
+	// 61KqL2ZUFeYrEqKbFKGSZ9URJj1Y7YyWNR94ZPSnsjRv
+	const clientKey = Buffer.from([248,5,10,46,193,72,250,211,21,18,41,213,218,78,53,139,74,180,150,14,53,74,45,170,13,249,139,142,166,242,196,249,74,95,186,189,4,6,75,155,134,150,50,38,195,1,128,28,61,215,77,69,133,229,172,137,58,11,151,105,4,187,54,77])
+	// 9KucZiDa1jfp9gX7r7rp1r7VxVCrxUsShvpDkg98KbsW
+	const serverMainKey = Buffer.from([27,81,124,213,249,242,152,45,212,167,200,161,9,96,58,203,232,4,201,30,99,191,222,174,66,178,120,40,80,181,162,2,123,181,112,155,206,105,144,205,15,98,43,19,29,175,201,37,106,60,94,158,35,195,120,224,95,239,53,54,67,86,118,185])
+	
 	// 클라이언트 월렛 어카운트
-	const aClientWalletAccount = anchor.web3.Keypair.fromSecretKey(aKey)
-	const bClientWalletAccount = anchor.web3.Keypair.fromSecretKey(bKey)
+	const clientWalletAccount = anchor.web3.Keypair.fromSecretKey(clientKey)
+	const serverWalletAccount = anchor.web3.Keypair.fromSecretKey(serverMainKey)
 
-	console.log(aClientWalletAccount.publicKey.toBase58())
-	console.log(bClientWalletAccount.publicKey.toBase58())
+	console.log(clientWalletAccount.publicKey.toBase58())
+	console.log(serverWalletAccount.publicKey.toBase58())
 
 	let newDataAccountPubkey: anchor.web3.PublicKey
 	// let newDataAccount: AccountInfo
@@ -32,10 +35,10 @@ describe('cpi', () => {
 		new ProgramAccountInfo(),
 	  ).length + 8
 	it('Check and create Dao Data Account', async () => {
-		const SEED = 'nft_2128184' // spl token
+		const SEED = 'nft_156163442' // spl token
 		// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
 		newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
-			bClientWalletAccount.publicKey,
+			serverWalletAccount.publicKey,
 			SEED,
 			register.programId
 		)
@@ -48,34 +51,50 @@ describe('cpi', () => {
 
 			// 데이터 사이즈에 맞는 최소 rent비 무시 적재량 계산
 			const lamports = await provider.connection.getMinimumBalanceForRentExemption(SIZE)
-			let prevLamports = await provider.connection.getBalance(aClientWalletAccount.publicKey)
+			let prevLamports = await provider.connection.getBalance(clientWalletAccount.publicKey)
 			console.log(prevLamports / 1000000000)
 
+			// 트랜잭션
+			let createNewAccDao = new anchor.web3.Transaction().add(
+				// create account
+				anchor.web3.SystemProgram.createAccountWithSeed({
+					fromPubkey: clientWalletAccount.publicKey,
+					basePubkey: serverWalletAccount.publicKey,
+					seed: SEED,
+					newAccountPubkey: newDataAccountPubkey,
+					lamports,
+					space: SIZE,
+					programId: register.programId,
+				}),
+			)
+
 			// 트랜잭션 실제 발생
-			const tx1 = await register.rpc.initialize({
+			// await register.provider.send(createNewAccDao, [clientWalletAccount, serverWalletAccount])
+			const tx = await register.rpc.initialize({
 				accounts: {
 					myAccount: newDataAccountPubkey,
-					user: provider.wallet.publicKey,
+					user: clientWalletAccount.publicKey,
 					systemProgram: anchor.web3.SystemProgram.programId,
 				},
 				instructions: [
 					anchor.web3.SystemProgram.createAccountWithSeed({
-						fromPubkey: aClientWalletAccount.publicKey,
-						basePubkey: bClientWalletAccount.publicKey,
+						fromPubkey: clientWalletAccount.publicKey,
+						basePubkey: serverWalletAccount.publicKey,
 						seed: SEED,
 						newAccountPubkey: newDataAccountPubkey,
 						lamports,
 						space: SIZE,
 						programId: register.programId,
 					}),
-					
 				],
-				signers: [aClientWalletAccount, bClientWalletAccount],
+				signers: [clientWalletAccount, serverWalletAccount],
 			})
+
 			const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
+			console.log('Your transaction signature', tx)
 			console.log(`newDataAccount:${newDataAccountPubkey}`)
 
-			let postLamports = await provider.connection.getBalance(bClientWalletAccount.publicKey)
+			let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
 			console.log(postLamports / 1000000000)
 		} else {
 			console.log('success')
@@ -93,7 +112,7 @@ describe('cpi', () => {
 			console.log("is it deposit?")
 			console.log(newDataAccountPubkey.toBase58())
 
-			const isDeposit = false
+			const isDeposit = true
 			const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 
 			// NFT owner를 바꾸는 식으로 구현한 다음
@@ -119,11 +138,11 @@ describe('cpi', () => {
 					},
 				})
 			}
-			// await register.rpc.moveRegion(new anchor.BN(2), {
-			// 	accounts: {
-			// 		myAccount: newDataAccountPubkey
-			// 	},
-			// })
+			await register.rpc.moveRegion(new anchor.BN(2), {
+				accounts: {
+					myAccount: newDataAccountPubkey
+				},
+			})
 			const result = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 			console.log(result)
 			// expect(result['level']).toBe(1)
