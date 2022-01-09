@@ -99,12 +99,12 @@ describe('cpi', () => {
 			}
 			instructions.push(
 				Token.createTransferInstruction(
-				  TOKEN_PROGRAM_ID,
-				  senderTokenAccount.address,
-				  associatedReceiverTokenAddr,
-				  sender.publicKey,
-				  [sender],
-				  1
+					TOKEN_PROGRAM_ID,
+					senderTokenAccount.address,
+					associatedReceiverTokenAddr,
+					sender.publicKey,
+					[sender],
+					1
 				)
 			  )
 
