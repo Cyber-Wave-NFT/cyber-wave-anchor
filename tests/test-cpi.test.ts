@@ -30,18 +30,50 @@ describe('cpi', () => {
 	let newDataAccountPubkey: anchor.web3.PublicKey
 	// let newDataAccount: AccountInfo
 
+	let mint: Token;
 	const SIZE = borsh.serialize(
 		ProgramAccountInfoSchema,
 		new ProgramAccountInfo(),
 	  ).length + 8
 	it('Check and create Dao Data Account', async () => {
-		const SEED = 'nft_156163442' // spl token
+		const SEED = '92sPFo54jPKN75FuY5HXC7qMC8z31YR8juRJi9Z3Z2BK' // spl token
 		// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
 		newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 			serverWalletAccount.publicKey,
 			SEED,
 			register.programId
 		)
+		const sender = clientWalletAccount
+		const receiver = serverWalletAccount
+		const mintPubkey = new anchor.web3.PublicKey("92sPFo54jPKN75FuY5HXC7qMC8z31YR8juRJi9Z3Z2BK")
+		mint = new Token(
+			provider.connection,
+			mintPubkey,
+			TOKEN_PROGRAM_ID,
+			clientWalletAccount
+		)
+		const senderTokenAccount = await mint.getOrCreateAssociatedAccountInfo(
+			sender.publicKey
+		)
+		const associatedReceiverTokenAddr = await Token.getAssociatedTokenAddress(
+			mint.associatedProgramId,
+			mint.programId,
+			mint.publicKey,
+			receiver.publicKey
+		)
+		const receiverAccount = await provider.connection.getAccountInfo(associatedReceiverTokenAddr);
+		const lamports = await provider.connection.getMinimumBalanceForRentExemption(SIZE)
+		const instructions: anchor.web3.TransactionInstruction[] = [
+			anchor.web3.SystemProgram.createAccountWithSeed({
+				fromPubkey: clientWalletAccount.publicKey,
+				basePubkey: serverWalletAccount.publicKey,
+				seed: SEED,
+				newAccountPubkey: newDataAccountPubkey,
+				lamports,
+				space: SIZE,
+				programId: register.programId,
+			}),
+		]
 		// newDataAccount가 가지고있는 DAO 소속 data account
 		const newDataAccount = await register.provider.connection.getAccountInfo(newDataAccountPubkey)
 		// data account가 null이면 DAO가 홀딩하는 data account를 만들어준다.
@@ -50,43 +82,40 @@ describe('cpi', () => {
 			console.log('Creating account', newDataAccountPubkey.toBase58(), 'to say hello to')
 
 			// 데이터 사이즈에 맞는 최소 rent비 무시 적재량 계산
-			const lamports = await provider.connection.getMinimumBalanceForRentExemption(SIZE)
 			let prevLamports = await provider.connection.getBalance(clientWalletAccount.publicKey)
 			console.log(prevLamports / 1000000000)
 
-			// 트랜잭션
-			let createNewAccDao = new anchor.web3.Transaction().add(
-				// create account
-				anchor.web3.SystemProgram.createAccountWithSeed({
-					fromPubkey: clientWalletAccount.publicKey,
-					basePubkey: serverWalletAccount.publicKey,
-					seed: SEED,
-					newAccountPubkey: newDataAccountPubkey,
-					lamports,
-					space: SIZE,
-					programId: register.programId,
-				}),
-			)
+			if (receiverAccount === null) {
+				instructions.push(
+					Token.createAssociatedTokenAccountInstruction(
+					mint.associatedProgramId,
+					mint.programId,
+					mint.publicKey,
+					associatedReceiverTokenAddr,
+					receiver.publicKey,
+					sender.publicKey
+					)
+				)
+			}
+			instructions.push(
+				Token.createTransferInstruction(
+				  TOKEN_PROGRAM_ID,
+				  senderTokenAccount.address,
+				  associatedReceiverTokenAddr,
+				  sender.publicKey,
+				  [sender],
+				  1
+				)
+			  )
 
 			// 트랜잭션 실제 발생
-			// await register.provider.send(createNewAccDao, [clientWalletAccount, serverWalletAccount])
 			const tx = await register.rpc.initialize({
 				accounts: {
 					myAccount: newDataAccountPubkey,
 					user: clientWalletAccount.publicKey,
 					systemProgram: anchor.web3.SystemProgram.programId,
 				},
-				instructions: [
-					anchor.web3.SystemProgram.createAccountWithSeed({
-						fromPubkey: clientWalletAccount.publicKey,
-						basePubkey: serverWalletAccount.publicKey,
-						seed: SEED,
-						newAccountPubkey: newDataAccountPubkey,
-						lamports,
-						space: SIZE,
-						programId: register.programId,
-					}),
-				],
+				instructions: instructions,
 				signers: [clientWalletAccount, serverWalletAccount],
 			})
 
