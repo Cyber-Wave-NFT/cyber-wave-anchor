@@ -15,13 +15,14 @@ pub mod register {
 	pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
 		let account_data = &mut ctx.accounts.my_account;
 		let user: &Signer = &ctx.accounts.user;
+		msg!("user pubkey: {:?}", &(&user.key).to_string().clone());
 		account_data.level = 1;
 		account_data.exp = 0;
 		account_data.power = 1000;
 		account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;
-		account_data.account_pubkey = "00000000000000000000000000000000".to_string();
-		account_data.character_pubkey = "00000000000000000000000000000000".to_string();
-		account_data.weapon_pubkey = "00000000000000000000000000000000".to_string();
+		account_data.account_pubkey = (&user.key).to_string().clone();
+		account_data.character_pubkey = "00000000000000000000000000000000000000000000".to_string();
+		account_data.weapon_pubkey = "00000000000000000000000000000000000000000000".to_string();
 		account_data.boost = 0;
 		account_data.stunned_at = 0;
 		account_data.ability_used_at = 0;

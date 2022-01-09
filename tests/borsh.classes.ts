@@ -3,9 +3,9 @@ export class ProgramAccountInfo {
 	exp = 0
 	power = 0
 	last_calculated_at = 0
-	account_pubkey: String = "00000000000000000000000000000000"
-	character_pubkey: String = "00000000000000000000000000000000"
-	weapon_pubkey: String = "00000000000000000000000000000000"
+	account_pubkey: String = "00000000000000000000000000000000000000000000"
+	character_pubkey: String = "00000000000000000000000000000000000000000000"
+	weapon_pubkey: String = "00000000000000000000000000000000000000000000"
 	boost = 0
 	stunned_at = 0
 	ability_used_at = 0
