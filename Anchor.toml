@@ -1,6 +1,5 @@
 [programs.devnet]
-register = "FnE2RPawcnWfkNrdEkqTPyh1y4oDnCDpDUJ9MXChTqUG"
-wave_size_calculation = "3Kxeg4njnqwswLdBdqmfnGVdctSddVXU4Ti5VFEyZ8wC"
+cyber_wave = "DH2wfDuYcVUYj8TJcGrE8nUqQ9wboqoHrPWrpbLQRJRB"
 
 [registry]
 url = "https://anchor.projectserum.com"

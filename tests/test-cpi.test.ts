@@ -12,14 +12,14 @@ describe('cpi', () => {
 	anchor.setProvider(provider)
 	
 	// DAO 프로그램, register 프로그램 가져오기
-	const register = anchor.workspace.Register
+	const register = anchor.workspace.CyberWave
 
 	// 로컬 월렛 키페어 가져오기
 	// 61KqL2ZUFeYrEqKbFKGSZ9URJj1Y7YyWNR94ZPSnsjRv
 	const clientKey = Buffer.from([248,5,10,46,193,72,250,211,21,18,41,213,218,78,53,139,74,180,150,14,53,74,45,170,13,249,139,142,166,242,196,249,74,95,186,189,4,6,75,155,134,150,50,38,195,1,128,28,61,215,77,69,133,229,172,137,58,11,151,105,4,187,54,77])
-	// 9KucZiDa1jfp9gX7r7rp1r7VxVCrxUsShvpDkg98KbsW
-	const serverMainKey = Buffer.from([27,81,124,213,249,242,152,45,212,167,200,161,9,96,58,203,232,4,201,30,99,191,222,174,66,178,120,40,80,181,162,2,123,181,112,155,206,105,144,205,15,98,43,19,29,175,201,37,106,60,94,158,35,195,120,224,95,239,53,54,67,86,118,185])
-	
+	// C7yPjuU9zWF2va58Eg4fd7sNwv5Ka4L7evfkDwykVJi2
+	const serverMainKey = Buffer.from([157,124,171,137,45,6,114,200,4,248,248,217,226,154,92,235,0,164,8,225,54,85,240,55,213,233,173,30,246,241,49,211,165,57,205,194,224,42,93,33,64,78,255,204,194,75,34,233,138,183,40,198,231,65,140,79,250,135,105,144,140,78,132,63])
+
 	// 클라이언트 월렛 어카운트
 	const clientWalletAccount = anchor.web3.Keypair.fromSecretKey(clientKey)
 	const serverWalletAccount = anchor.web3.Keypair.fromSecretKey(serverMainKey)
@@ -216,6 +216,8 @@ describe('cpi', () => {
 					})
 
 					console.log('Your transaction signature', tx)
+					const result = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
+					console.log(result)
 
 					let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
 					console.log(postLamports / 1000000000)
@@ -271,14 +273,17 @@ describe('cpi', () => {
 					})
 
 					console.log('Your transaction signature', tx)
-
+					const result = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
+					console.log(result)
 					let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
 					console.log(postLamports / 1000000000)
 				}
-				await register.rpc.moveRegion(new anchor.BN(2), {
+				await register.rpc.moveRegion("REGION_01", {
 					accounts: {
-						myAccount: newDataAccountPubkey
+						myAccount: newDataAccountPubkey,
+						user: clientWalletAccount.publicKey,
 					},
+					signers: [clientWalletAccount, serverWalletAccount],
 				})
 				const result = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 				console.log(result)
