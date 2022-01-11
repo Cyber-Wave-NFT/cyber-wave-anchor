@@ -9,7 +9,7 @@ export class ProgramAccountInfo {
 	boost = 0
 	stunned_at = 0
 	ability_used_at = 0
-	region: String = "00000000"
+	region: String = "000000000"
 	constructor(fields: {
 		level: number, 
 		exp: number,
