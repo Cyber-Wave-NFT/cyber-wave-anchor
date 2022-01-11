@@ -36,6 +36,7 @@ describe('cpi', () => {
 		new ProgramAccountInfo(),
 	  ).length + 8
 	  
+	const SEED = '92sPFo54jPK' // spl token
 	const mintPubkey = new anchor.web3.PublicKey("92sPFo54jPKN75FuY5HXC7qMC8z31YR8juRJi9Z3Z2BK")
 	mint = new Token(
 				provider.connection,
@@ -55,13 +56,20 @@ describe('cpi', () => {
 			mint.publicKey,
 			serverWalletAccount.publicKey
 		)
-		const receiverAccount = await provider.connection.getAccountInfo(associatedReceiverTokenAddr);
+
+		newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
+			serverWalletAccount.publicKey,
+			SEED,
+			register.programId
+		)
+
+		const newDataAccount = await register.provider.connection.getAccountInfo(newDataAccountPubkey)
 
 		// initialize, Check and create Dao Data Account
-		if (receiverAccount === null){
+		if (newDataAccount === null){
 			const sender = clientWalletAccount
 			const receiver = serverWalletAccount
-			const SEED = '92sPFo54jPK' // spl token
+			
 			// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
 			newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 				serverWalletAccount.publicKey,
@@ -90,6 +98,8 @@ describe('cpi', () => {
 				// 데이터 사이즈에 맞는 최소 rent비 무시 적재량 계산
 				let prevLamports = await provider.connection.getBalance(clientWalletAccount.publicKey)
 				console.log(prevLamports / 1000000000)
+
+				const receiverAccount = await provider.connection.getAccountInfo(associatedReceiverTokenAddr);
 
 				if (receiverAccount === null) {
 					instructions.push(
@@ -139,23 +149,22 @@ describe('cpi', () => {
 		else{
 			try {
 				console.log("is it deposit?")
-				console.log(newDataAccountPubkey.toBase58())
-	
+				// console.log(newDataAccountPubkey.toBase58())
+
 				const isDeposit = true
-				const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
-	
+				// const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
+
 				// NFT owner를 바꾸는 식으로 구현한 다음
 				// NFT의 onwer를 확인하여 등록여부를 확인하는거로 바뀌어야함
 				// if (isDeposit && dataAccount['registeredAt'] !== 0) {
-				// 	console.log("You are trying to register but Already registered")
-				// 	return
+				//  console.log("You are trying to register but Already registered")
+				//  return
 				// } else if (!isDeposit && dataAccount['registeredAt'] === 0) {
-				// 	console.log("You are trying to unregister but isn't Registered.")
-				// 	return
+				//  console.log("You are trying to unregister but isn't Registered.")
+				//  return
 				// }
-	
+
 				if (isDeposit) {
-					const SEED = '92sPFo54jPK' // spl token
 					// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
 					newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 						serverWalletAccount.publicKey,
@@ -210,12 +219,61 @@ describe('cpi', () => {
 
 					let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
 					console.log(postLamports / 1000000000)
+
 				} else {
-					await register.rpc.unregister({
+					const receiver = clientWalletAccount
+					const sender = serverWalletAccount
+					// 클라 퍼블릭키, SPL token ID, DAO 프로그램 ID로 새 데이터 어카운트 생성 (혹은 이미 있는 어카운트 가져오기)
+					newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
+						serverWalletAccount.publicKey,
+						SEED,
+						register.programId
+					)
+					const mintPubkey = new anchor.web3.PublicKey("92sPFo54jPKN75FuY5HXC7qMC8z31YR8juRJi9Z3Z2BK")
+					mint = new Token(
+						provider.connection,
+						mintPubkey,
+						TOKEN_PROGRAM_ID,
+						serverWalletAccount
+					)
+					const senderTokenAccount = await mint.getOrCreateAssociatedAccountInfo(
+						sender.publicKey
+					)
+					const associatedReceiverTokenAddr = await Token.getAssociatedTokenAddress(
+						mint.associatedProgramId,
+						mint.programId,
+						mint.publicKey,
+						receiver.publicKey
+					)
+					const instructions: anchor.web3.TransactionInstruction[] = [
+						Token.createTransferInstruction(
+							TOKEN_PROGRAM_ID,
+							senderTokenAccount.address,
+							associatedReceiverTokenAddr,
+							sender.publicKey,
+							[sender],
+							1
+						)
+					]
+
+					// 데이터 사이즈에 맞는 최소 rent비 무시 적재량 계산
+					let prevLamports = await provider.connection.getBalance(clientWalletAccount.publicKey)
+					console.log(prevLamports / 1000000000)
+
+					// 트랜잭션 실제 발생
+					const tx = await register.rpc.unregister({
 						accounts: {
-							myAccount: newDataAccountPubkey
+							myAccount: newDataAccountPubkey,
+							user: clientWalletAccount.publicKey,
 						},
+						instructions: instructions,
+						signers: [clientWalletAccount, serverWalletAccount],
 					})
+
+					console.log('Your transaction signature', tx)
+
+					let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
+					console.log(postLamports / 1000000000)
 				}
 				await register.rpc.moveRegion(new anchor.BN(2), {
 					accounts: {
