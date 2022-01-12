@@ -13,20 +13,22 @@ pub mod cyber_wave {
 	const EXP_LIMIT: u32 = 2_000_000;
 
 	use super::*;
-	pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+	pub fn initialize(ctx: Context<Initialize>, jacket: String, head_addon: String, facewear: String, 
+					tatoo: String, clothes: String, neckwear: String, character_type: String) -> ProgramResult {
 		let account_data = &mut ctx.accounts.my_account;
 		let user: &Signer = &ctx.accounts.user;
 		msg!("user pubkey: {:?}", &(&user.key).to_string().clone());
 		account_data.level = 1;
 		account_data.exp = 0;
-		account_data.power = 1000;
+		// TODO: jacket, head_addon, etc로 계산
+		account_data.power_magnified = 10000; // original power magnified * 10000
 		account_data.level_power = 1000;
 		account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;
 		account_data.account_pubkey = (&user.key).to_string().clone();
 		account_data.weapon_pubkey = "00000000000000000000000000000000000000000000".to_string();
 		account_data.boost = 0;
 		account_data.stun_end_at = 0;
-		account_data.character_type = "NORMAL".to_string();
+		account_data.character_type = character_type.to_string();
 		account_data.ability_able_at = 0;
 		account_data.region = "BASE_MENT".to_string();
 
@@ -134,7 +136,7 @@ pub struct Register<'info> {
 pub struct ProgramAccountInfo {
 	pub level: u32,
 	pub exp: u32,
-	pub power: u32,
+	pub power_magnified: u32,
 	pub level_power: u32,	
 	pub last_calculated_at: u32,
 	pub account_pubkey: String,
