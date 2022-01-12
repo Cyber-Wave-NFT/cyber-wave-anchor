@@ -12,6 +12,7 @@ describe('cpi', () => {
 	anchor.setProvider(provider)
 	
 	// DAO 프로그램, register 프로그램 가져오기
+	// TODO: register 이름 바꾸기
 	const register = anchor.workspace.CyberWave
 
 	// 로컬 월렛 키페어 가져오기
@@ -63,6 +64,9 @@ describe('cpi', () => {
 			register.programId
 		)
 
+		// get nft token metadata public key
+		const [metadataPubkey, metadataPubkeyBump] = await anchor.web3.PublicKey.findProgramAddress(["metadata", register.programId.toBuffer(), mint.publicKey.toBuffer()], register.programId)
+
 		const newDataAccount = await register.provider.connection.getAccountInfo(newDataAccountPubkey)
 
 		// initialize, Check and create Dao Data Account
@@ -92,6 +96,7 @@ describe('cpi', () => {
 			const newDataAccount = await register.provider.connection.getAccountInfo(newDataAccountPubkey)
 			// data account가 null이면 DAO가 홀딩하는 data account를 만들어준다.
 			// null이 아니면 그냥 해당 데이터 어카운트를 사용한다.
+			// TODO: null 밖에서 확인했으니 지워야할듯
 			if (newDataAccount === null) {
 				console.log('Creating account', newDataAccountPubkey.toBase58(), 'to say hello to')
 
@@ -128,6 +133,7 @@ describe('cpi', () => {
 				const tx = await register.rpc.initialize({
 					accounts: {
 						myAccount: newDataAccountPubkey,
+						metaData: metadataPubkey,
 						user: clientWalletAccount.publicKey,
 						systemProgram: anchor.web3.SystemProgram.programId,
 					},
@@ -135,10 +141,11 @@ describe('cpi', () => {
 					signers: [clientWalletAccount, serverWalletAccount],
 				})
 
-				const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
+				const result = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 				console.log('Your transaction signature', tx)
 				console.log(`newDataAccount:${newDataAccountPubkey}`)
-
+				console.log(result)
+				
 				let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
 				console.log(postLamports / 1000000000)
 			} else {
@@ -278,13 +285,13 @@ describe('cpi', () => {
 					let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
 					console.log(postLamports / 1000000000)
 				}
-				await register.rpc.moveRegion("REGION_01", {
-					accounts: {
-						myAccount: newDataAccountPubkey,
-						user: clientWalletAccount.publicKey,
-					},
-					signers: [clientWalletAccount, serverWalletAccount],
-				})
+				// await register.rpc.moveRegion("REGION_03", {
+				// 	accounts: {
+				// 		myAccount: newDataAccountPubkey,
+				// 		user: clientWalletAccount.publicKey,
+				// 	},
+				// 	signers: [clientWalletAccount, serverWalletAccount],
+				// })
 				const result = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 				console.log(result)
 				// expect(result['level']).toBe(1)
