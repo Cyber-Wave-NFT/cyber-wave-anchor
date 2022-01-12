@@ -24,3 +24,9 @@ pub fn calculate_level_and_exp<'info>(account_data: &mut Account<'info, ProgramA
 		time_elapsed -= need_time_to_level_up;
 	}
 }
+
+pub fn calculate_result(zombie_power: u32, characters_power: u32) -> bool {
+	let winning_rate = ((characters_power as f64) / (zombie_power as f64)) * 70_f64;
+	let random_number = 100_f64; // 1에서 100 사이 값
+	return winning_rate > random_number;
+}
