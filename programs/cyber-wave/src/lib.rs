@@ -129,7 +129,7 @@ pub mod cyber_wave {
 		if heal_character.ability_able_at > current_time {
 			return Err(Errors::HealPowerNotOn.into());
 		}
-		if injured_character.stun_end_at < current_time {
+		if injured_character.stun_end_at > current_time {
 			return Err(Errors::NotInjured.into());
 		}
 		heal_character.ability_able_at = current_time + 604800;
