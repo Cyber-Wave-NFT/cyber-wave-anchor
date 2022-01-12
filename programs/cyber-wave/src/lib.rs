@@ -3,9 +3,6 @@ mod logic;
 use anchor_lang::prelude::*;
 use solana_program::clock::Clock;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
-use spl_token_metadata;
-use std::io::Write;
-use std::ops::Deref;
 
 declare_id!("DH2wfDuYcVUYj8TJcGrE8nUqQ9wboqoHrPWrpbLQRJRB");
 
@@ -20,7 +17,6 @@ pub mod cyber_wave {
 		let account_data = &mut ctx.accounts.my_account;
 		let user: &Signer = &ctx.accounts.user;
 		msg!("user pubkey: {:?}", &(&user.key).to_string().clone());
-		msg!("user skin: {:?}", ctx.accounts.meta_data.data.clone());
 		account_data.level = 1;
 		account_data.exp = 0;
 		account_data.power = 1000;
@@ -150,50 +146,10 @@ pub struct ProgramAccountInfo {
 	pub region: String
 }
 
-#[derive(Clone)]
-pub struct Metadata(spl_token_metadata::state::Metadata);
-
-impl anchor_lang::AccountDeserialize for Metadata {
-    fn try_deserialize(buf: &mut &[u8]) -> std::result::Result<Self, ProgramError> {
-        Metadata::try_deserialize_unchecked(buf)
-    }
-
-    fn try_deserialize_unchecked(buf: &mut &[u8]) -> std::result::Result<Self, ProgramError> {
-        let md = spl_token_metadata::utils::try_from_slice_checked(
-            buf,
-            spl_token_metadata::state::Key::MetadataV1,
-            spl_token_metadata::state::MAX_METADATA_LEN)?;
-        let metadata = Metadata(md);
-        Ok(metadata)
-    }
-}
-
-impl AccountSerialize for Metadata {
-    fn try_serialize<W: Write>(&self, _writer: &mut W) -> std::result::Result<(), ProgramError> {
-        // no-op
-        Ok(())
-    }
-}
-
-impl Owner for Metadata {
-    fn owner() -> Pubkey {
-        spl_token_metadata::ID
-    }
-}
-
-impl Deref for Metadata {
-    type Target = spl_token_metadata::state::Metadata;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
 #[derive(Accounts)]
 pub struct Initialize<'info> {
 	#[account(zero)]
 	pub my_account: Account<'info, ProgramAccountInfo>,
-	pub meta_data: Account<'info, Metadata>,
 	#[account(mut)]
 	pub user: Signer<'info>,
 	pub system_program: Program<'info, System>,

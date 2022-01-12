@@ -133,7 +133,6 @@ describe('cpi', () => {
 				const tx = await register.rpc.initialize({
 					accounts: {
 						myAccount: newDataAccountPubkey,
-						metaData: metadataPubkey,
 						user: clientWalletAccount.publicKey,
 						systemProgram: anchor.web3.SystemProgram.programId,
 					},
@@ -285,13 +284,13 @@ describe('cpi', () => {
 					let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
 					console.log(postLamports / 1000000000)
 				}
-				// await register.rpc.moveRegion("REGION_03", {
-				// 	accounts: {
-				// 		myAccount: newDataAccountPubkey,
-				// 		user: clientWalletAccount.publicKey,
-				// 	},
-				// 	signers: [clientWalletAccount, serverWalletAccount],
-				// })
+				await register.rpc.moveRegion("REGION_03", {
+					accounts: {
+						myAccount: newDataAccountPubkey,
+						user: clientWalletAccount.publicKey,
+					},
+					signers: [clientWalletAccount, serverWalletAccount],
+				})
 				const result = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 				console.log(result)
 				// expect(result['level']).toBe(1)
