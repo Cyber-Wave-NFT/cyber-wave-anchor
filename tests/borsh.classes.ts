@@ -1,39 +1,42 @@
 export class ProgramAccountInfo {
 	level = 0
 	exp = 0
-	power = 0
+	power = 0 // total power(level, class, weapon, clothes etc..)
+	level_power = 0 // power by level
 	last_calculated_at = 0
 	account_pubkey: String = "00000000000000000000000000000000000000000000"
-	character_pubkey: String = "00000000000000000000000000000000000000000000"
 	weapon_pubkey: String = "00000000000000000000000000000000000000000000"
 	boost = 0
-	stunned_at = 0
-	ability_used_at = 0
+	stun_end_at = 0
+	character_type: String = "000000"
+	ability_able_at = 0
 	region: String = "000000000"
 	constructor(fields: {
 		level: number, 
 		exp: number,
 		power: number,
+		level_power: number,
 		last_calculated_at: number,
 		account_pubkey: String,
-		character_pubkey: String,
 		weapon_pubkey: String,
 		boost: number,
-		stunned_at: number,
-		ability_used_at: number,
+		stun_end_at: number,
+		character_type: String
+		ability_able_at: number,
 		region: String
 	} | undefined = undefined) {
 		if (fields) {
 			this.level = fields.level;
 			this.exp = fields.exp;
 			this.power = fields.power;
+			this.level_power = fields.level_power;
 			this.last_calculated_at = fields.last_calculated_at;
 			this.account_pubkey = fields.account_pubkey;
-			this.character_pubkey = fields.character_pubkey;
 			this.weapon_pubkey = fields.weapon_pubkey;
 			this.boost = fields.boost;
-			this.stunned_at = fields.stunned_at;
-			this.ability_used_at = fields.ability_used_at;
+			this.stun_end_at = fields.stun_end_at;
+			this.character_type = fields.character_type
+			this.ability_able_at = fields.ability_able_at;
 			this.region = fields.region;
 		}
 	}
@@ -47,13 +50,14 @@ export const ProgramAccountInfoSchema = new Map([
 		['level', 'u32'],
 		['exp', 'u32'],
 		['power', 'u32'],
+		['level_power', 'u32'],
 		['last_calculated_at', 'u32'],
 		['account_pubkey', 'String'],
-		['character_pubkey', 'String'],
 		['weapon_pubkey', 'String'],
 		['boost', 'u32'],
-		['stunned_at', 'u32'],
-		['ability_used_at', 'u32'],
+		['stun_end_at', 'u32'],
+		['character_type', 'String'],
+		['ability_able_at', 'u32'],
 		['region', 'String']
 	]}],
 ])
