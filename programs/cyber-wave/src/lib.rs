@@ -119,6 +119,24 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
+	pub fn heal_character(ctx: Context<HealCharacter>) -> ProgramResult {
+		let heal_character = &mut ctx.accounts.heal_character_account;
+		let injured_character = &mut ctx.accounts.injured_character_account;
+		let current_time = Clock::get().unwrap().unix_timestamp as u32;
+		if heal_character.character_type != "heal" {
+			return Err(Errors::NotHealingCharacter.into());
+		}
+		if heal_character.ability_able_at > current_time {
+			return Err(Errors::HealPowerNotOn.into());
+		}
+		if injured_character.stun_end_at < current_time {
+			return Err(Errors::NotInjured.into());
+		}
+		heal_character.ability_able_at = current_time + 604800;
+		injured_character.stun_end_at = current_time;
+		Ok(())
+	}
+
 	pub fn initialize_region_data(_ctx: Context<InitializeRegion>) -> ProgramResult {
 		Ok(())
 	}
@@ -192,4 +210,20 @@ pub struct InitializeRegion<'info> {
 	#[account(mut)]
 	pub user: Signer<'info>,
 	pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct HealCharacter<'info> {
+	pub heal_character_account: Account<'info, ProgramAccountInfo>,
+	pub injured_character_account: Account<'info, ProgramAccountInfo>
+}
+
+#[error]
+pub enum Errors {
+	#[msg("Not healing character")]
+	NotHealingCharacter,
+	#[msg("Healing character is not in power")]
+	HealPowerNotOn,
+	#[msg("character not injured")]
+	NotInjured,
 }
