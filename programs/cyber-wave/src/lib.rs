@@ -13,20 +13,23 @@ pub mod cyber_wave {
 	const EXP_LIMIT: u32 = 2_000_000;
 
 	use super::*;
-	pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+	pub fn initialize(ctx: Context<Initialize>, jacket: String, head_addon: String, facewear: String, 
+					tatoo: String, clothes: String, neckwear: String, character_type: String) -> ProgramResult {
 		let account_data = &mut ctx.accounts.my_account;
 		let user: &Signer = &ctx.accounts.user;
 		msg!("user pubkey: {:?}", &(&user.key).to_string().clone());
 		account_data.level = 1;
 		account_data.exp = 0;
-		account_data.power = 1000;
+		// TODO: jacket, head_addon, etc로 계산
+		account_data.power_magnified = 10000; // original power magnified * 10000
+		account_data.level_power = 1000;
 		account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;
 		account_data.account_pubkey = (&user.key).to_string().clone();
-		account_data.character_pubkey = "00000000000000000000000000000000000000000000".to_string();
 		account_data.weapon_pubkey = "00000000000000000000000000000000000000000000".to_string();
 		account_data.boost = 0;
-		account_data.stunned_at = 0;
-		account_data.ability_used_at = 0;
+		account_data.stun_end_at = 0;
+		account_data.character_type = character_type.to_string();
+		account_data.ability_able_at = 0;
 		account_data.region = "BASE_MENT".to_string();
 
 		Ok(())
@@ -36,25 +39,27 @@ pub mod cyber_wave {
 	// unregister시 move region 안되게
 	pub fn move_region(ctx: Context<Register>, data: String) -> ProgramResult {
 		let account_data = &mut ctx.accounts.my_account;
-		logic::calculate_level_and_exp(account_data);
-		account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;
-		if data == "BASE_MENT".to_string() { // region이름으로 가져오는걸로 바꾸고, region 이름은 9length string, basement + region 4
-			account_data.region = "BASE_MENT".to_string()
+		if account_data.region != "000000000".to_string() {
+			logic::calculate_level_and_exp(account_data);
+			account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;
+			if data == "BASE_MENT".to_string() { // region이름으로 가져오는걸로 바꾸고, region 이름은 9length string, basement + region 4
+				account_data.region = "BASE_MENT".to_string()
+			}
+			if data == "REGION_01".to_string() {
+				account_data.region = "REGION_01".to_string()
+			}
+			if data == "REGION_02".to_string() {
+				account_data.region = "REGION_02".to_string()
+			}
+			if data == "REGION_03".to_string() {
+				account_data.region = "REGION_03".to_string()
+			}
+			if data == "REGION_04".to_string() {
+				account_data.region = "REGION_04".to_string()
+			}
+			// cannot exceed MAX Exp
+			account_data.exp = std::cmp::min(account_data.exp, EXP_LIMIT);
 		}
-		if data == "REGION_01".to_string() {
-			account_data.region = "REGION_01".to_string()
-		}
-		if data == "REGION_02".to_string() {
-			account_data.region = "REGION_02".to_string()
-		}
-		if data == "REGION_03".to_string() {
-			account_data.region = "REGION_03".to_string()
-		}
-		if data == "REGION_04".to_string() {
-			account_data.region = "REGION_04".to_string()
-		}
-		// cannot exceed MAX Exp
-		account_data.exp = std::cmp::min(account_data.exp, EXP_LIMIT);
 		Ok(())
 	}
 
@@ -62,6 +67,7 @@ pub mod cyber_wave {
 		let account_data = &mut ctx.accounts.my_account;
 
 		// register logic
+		// TODO: power, level_power 계산
 		account_data.account_pubkey = ctx.accounts.user.to_account_info().key.to_string();
 		account_data.level = 1 + ((account_data.exp / 50) as f64).sqrt().round() as u32; 	// total_exp = 50 * level^2
 		account_data.power = 1.01_f64.powf((account_data.level - 1) as f64) as u32 * 1000; 	// 1% power up per level up 1.01^(level - 1) * 1000(default power)
@@ -73,14 +79,15 @@ pub mod cyber_wave {
 		// NFT pubKey
 		Ok(())
 	}
-
+	
 	pub fn unregister(ctx: Context<Register>) -> ProgramResult {
 		let account_data =  &mut ctx.accounts.my_account;
+
+		if account_data.region == "BASE_MENT" {
+			logic::calculate_level_and_exp(account_data);
+		}
 		// unregister logic
 		account_data.region = "000000000".to_string();	// region clear
-
-		logic::calculate_level_and_exp(account_data);
-
 		account_data.last_calculated_at = 0;			// registered at time clear
 
 		// cannot exceed MAX Exp
@@ -129,14 +136,15 @@ pub struct Register<'info> {
 pub struct ProgramAccountInfo {
 	pub level: u32,
 	pub exp: u32,
-	pub power: u32,
+	pub power_magnified: u32,
+	pub level_power: u32,	
 	pub last_calculated_at: u32,
 	pub account_pubkey: String,
-	pub character_pubkey: String,
 	pub weapon_pubkey: String,
 	pub boost: u32,
-	pub stunned_at: u32,
-	pub ability_used_at: u32,
+	pub stun_end_at: u32,
+	pub character_type: String,
+	pub ability_able_at: u32,
 	pub region: String
 }
 
