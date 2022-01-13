@@ -1,10 +1,24 @@
 import * as anchor from '@project-serum/anchor'
 import { clusterApiUrl, Connection, Keypair, Transaction, SystemProgram } from "@solana/web3.js";
 import { Token, TOKEN_PROGRAM_ID, MintLayout, AccountLayout, AccountInfo } from "@solana/spl-token";
+import * as metaplex from '@metaplex/js';
 import * as borsh from 'borsh'
 import { ProgramAccountInfoSchema, ProgramAccountInfo } from './borsh.classes';
 import { clientKey, serverMainKey, SEED, mintPublicKey } from './config/config'
+import fetch from 'node-fetch';
 import config from '../jest.config';
+
+interface DetailedMetadata {
+    attributes: { [key: string]: string }[];
+    description: string;
+    external_url: string;
+    image: string;
+    name: string;
+    properties: string | {}[];
+    seller_fee_basis_point: number;
+    symbol: string;
+    status: {}[];
+}
 
 jest.setTimeout(30000000)
 describe('cpi', () => {
@@ -57,13 +71,31 @@ describe('cpi', () => {
             cyberWave.programId
         )
 
-        // get nft token metadata public key
-        const [metadataPubkey, metadataPubkeyBump] = await anchor.web3.PublicKey.findProgramAddress(["metadata", cyberWave.programId.toBuffer(), mint.publicKey.toBuffer()], cyberWave.programId)
-
         const newDataAccount = await cyberWave.provider.connection.getAccountInfo(newDataAccountPubkey)
 
         // initialize, Check and create Dao Data Account
         if (newDataAccount === null) {
+            // get arweave uri
+            const metadataAccounts = await metaplex.programs.metadata.Metadata.getPDA(mint.publicKey);
+            const metadata = await metaplex.programs.metadata.Metadata.load(
+                new Connection(clusterApiUrl("devnet")),
+                metadataAccounts
+            );
+
+            // get metadata from arweave uri
+            const res = await fetch(metadata.data.data.uri);
+            // unwrap response as json
+            const detailMetadata: DetailedMetadata = await res.json();
+
+            //users.attributes[0-12]["trait_type"|"value"]
+            const powerAtts = ["jacket", "head add-on", "facewear", "tattoo", "clothes", "neckwear", "skin type"]
+            let attributes: { [key: string]: string } = {};
+            for (var att of detailMetadata.attributes) {
+                if (powerAtts.includes(Object.values(att)[0])) {
+                    attributes[Object.values(att)[0]] = Object.values(att)[1]
+                }
+            }
+
             const sender = clientWalletAccount
             const receiver = serverWalletAccount
 
@@ -114,16 +146,24 @@ describe('cpi', () => {
             )
 
             // 트랜잭션 실제 발생
-            const tx = await cyberWave.rpc.initialize({
-                accounts: {
-                    myAccount: newDataAccountPubkey,
-                    metaData: metadataPubkey,
-                    user: clientWalletAccount.publicKey,
-                    systemProgram: anchor.web3.SystemProgram.programId,
-                },
-                instructions: instructions,
-                signers: [clientWalletAccount, serverWalletAccount],
-            })
+            const tx = await cyberWave.rpc.initialize(
+                attributes["jacket"] ?? "",
+                attributes["head add-on"] ?? "",
+                attributes["facewear"] ?? "",
+                attributes["tattoo"] ?? "",
+                attributes["clothes"] ?? "",
+                attributes["neckwear"] ?? "",
+                (attributes["skin type"]?.split(" ").pop() ?? "").padEnd(6, '0'),
+                {   
+                    accounts: {
+                        myAccount: newDataAccountPubkey,
+                        user: clientWalletAccount.publicKey,
+                        systemProgram: anchor.web3.SystemProgram.programId,
+                    },
+                    instructions: instructions,
+                    signers: [clientWalletAccount, serverWalletAccount],
+                }
+            )
 
             const result = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
             console.log('Your transaction signature', tx)
