@@ -69,17 +69,12 @@ describe('cpi', () => {
 				signers: [serverWalletAccount],
 			})
 		}
-		const random1 = Math.random()
-		const random2 = Math.random()
-		const random3 = Math.random()
-		const random4 = Math.random()
-		const allRandom = random1 + random2 + random3 + random4
 		await waveSizeCalculation.rpc.sizeCalculate(
 			new anchor.BN(res),
-			new anchor.BN(Math.round((random1 / allRandom) * 100)),
-			new anchor.BN(Math.round((random2 / allRandom) * 100)),
-			new anchor.BN(Math.round((random3 / allRandom) * 100)),
-			new anchor.BN(Math.round((random4 / allRandom) * 100)),
+			new anchor.BN(makeId(8)),
+			new anchor.BN(makeId(8)),
+			new anchor.BN(makeId(8)),
+			new anchor.BN(makeId(8)),
 			{
 			accounts: {
 				centralRegionAccount: newDataAccountPubkey,

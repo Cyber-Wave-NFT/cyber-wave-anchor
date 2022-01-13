@@ -161,25 +161,26 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
-	pub fn region_result_calculate(ctx: Context<RegionResult>, region_1_power: u32, region_2_power: u32, region_3_power: u32, region_4_power: u32) -> ProgramResult {
+	pub fn region_result_calculate(ctx: Context<RegionResult>, random1: String, random2: String, random3: String, random4: String,
+			region_1_power: u32, region_2_power: u32, region_3_power: u32, region_4_power: u32) -> ProgramResult {
 		let zombie_power = &mut ctx.accounts.central_region_account;
 		let result = &mut ctx.accounts.central_region_result_account;
 
 		result.region_1_zombie_power = zombie_power.region_1_power;
 		result.region_1_characters_power = region_1_power;
-		result.region_1_is_win = logic::calculate_result(result.region_1_zombie_power, result.region_1_characters_power); // 여기 계산
+		result.region_1_is_win = logic::calculate_result(result.region_1_zombie_power, result.region_1_characters_power, random1); // 여기 계산
 
 		result.region_2_zombie_power = zombie_power.region_2_power;
 		result.region_2_characters_power = region_2_power;
-		result.region_2_is_win = logic::calculate_result(result.region_2_zombie_power, result.region_2_characters_power); // 여기 계산
+		result.region_2_is_win = logic::calculate_result(result.region_2_zombie_power, result.region_2_characters_power, random2); // 여기 계산
 
 		result.region_3_zombie_power = zombie_power.region_3_power;
 		result.region_3_characters_power = region_3_power;
-		result.region_3_is_win = logic::calculate_result(result.region_3_zombie_power, result.region_3_characters_power); // 여기 계산
+		result.region_3_is_win = logic::calculate_result(result.region_3_zombie_power, result.region_3_characters_power, random3); // 여기 계산
 
 		result.region_4_zombie_power = zombie_power.region_4_power;
 		result.region_4_characters_power = region_4_power;
-		result.region_4_is_win = logic::calculate_result(result.region_4_zombie_power, result.region_4_characters_power); // 여기 계산
+		result.region_4_is_win = logic::calculate_result(result.region_4_zombie_power, result.region_4_characters_power, random4); // 여기 계산
 
 		Ok(())
 	}

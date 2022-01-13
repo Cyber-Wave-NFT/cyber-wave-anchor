@@ -26,10 +26,10 @@ pub fn calculate_level_and_exp<'info>(account_data: &mut Account<'info, ProgramA
 	}
 }
 
-pub fn calculate_result(zombie_power: u32, characters_power: u32) -> bool {
+pub fn calculate_result(zombie_power: u32, characters_power: u32, random_seed: String) -> bool {
 	let winning_rate = ((characters_power as f64) / (zombie_power as f64)) * 70_f64;
-	let random_number = 100_f64; // 1에서 100 사이 값
-	return winning_rate > random_number;
+	let random_number = calculate_random(random_seed); // 1에서 100 사이 값
+	return winning_rate > (random_number as f64);
 }
 
 pub fn calculate_random(random_seed: String) -> u32 {

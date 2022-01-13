@@ -10,8 +10,7 @@ describe('cpi', () => {
 	anchor.setProvider(provider)
 	let newDataAccountPubkey: anchor.web3.PublicKey
 	// DAO 프로그램, register 프로그램 가져오기
-	const register = anchor.workspace.Register
-	const waveSizeCalculation = anchor.workspace.WaveSizeCalculation
+	const cyberWave = anchor.workspace.CyberWave
 
 	// 로컬 월렛 키페어 가져오기
 	const serverMainKey = Buffer.from([27,81,124,213,249,242,152,45,212,167,200,161,9,96,58,203,232,4,201,30,99,191,222,174,66,178,120,40,80,181,162,2,123,181,112,155,206,105,144,205,15,98,43,19,29,175,201,37,106,60,94,158,35,195,120,224,95,239,53,54,67,86,118,185])
@@ -25,13 +24,24 @@ describe('cpi', () => {
 	console.log(serverWalletAccount.publicKey.toBase58())
 
 	it('test rns', async () => {
-		const ts = await register.account.programAccountInfo.all()
+		const ts = await cyberWave.account.programAccountInfo.all()
 		const accounts = ts.map((elem: {publicKey: any, account: Object}) => (elem.account))
 		console.log(accounts)
 		const res = accounts.reduce((acc: any, cur: any) => {
-			acc += cur.power
+			if (cur.region === "REGION_1") {
+				acc.region_1 += cur.power
+			}
+			if (cur.region === "REGION_2") {
+				acc.region_2 += cur.power
+			}
+			if (cur.region === "REGION_3") {
+				acc.region_3 += cur.power
+			}
+			if (cur.region === "REGION_4") {
+				acc.region_4 += cur.power
+			}
 			return acc
-		}, 0)
+		}, { region_1: 0, region_2: 0, region_3: 0, region_4: 0 })
 		const SIZE = borsh.serialize(
 			RegionInfoSchema,
 			new RegionInfo(),
@@ -39,16 +49,16 @@ describe('cpi', () => {
 		newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 			serverWalletAccount.publicKey,
 			"CENTRAL_REGION1",
-			waveSizeCalculation.programId
+			cyberWave.programId
 		)
-		const newDataAccount = await register.provider.connection.getAccountInfo(newDataAccountPubkey)
+		const newDataAccount = await cyberWave.provider.connection.getAccountInfo(newDataAccountPubkey)
 		if (!newDataAccount) {
 			const lamports = await provider.connection.getMinimumBalanceForRentExemption(SIZE)
 			let prevLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
 			console.log(prevLamports / 1000000000)
 
 			// 트랜잭션
-			const tx = await waveSizeCalculation.rpc.initialize(
+			const tx = await cyberWave.rpc.initialize(
 				{
 				accounts: {
 					myAccount: newDataAccountPubkey,
@@ -63,30 +73,28 @@ describe('cpi', () => {
 						newAccountPubkey: newDataAccountPubkey,
 						lamports,
 						space: SIZE,
-						programId: waveSizeCalculation.programId,
+						programId: cyberWave.programId,
 					}),
 				],
 				signers: [serverWalletAccount],
 			})
 		}
-		const random1 = Math.random()
-		const random2 = Math.random()
-		const random3 = Math.random()
-		const random4 = Math.random()
-		const allRandom = random1 + random2 + random3 + random4
-		await waveSizeCalculation.rpc.sizeCalculate(
-			new anchor.BN(res),
-			new anchor.BN(Math.round((random1 / allRandom) * 100)),
-			new anchor.BN(Math.round((random2 / allRandom) * 100)),
-			new anchor.BN(Math.round((random3 / allRandom) * 100)),
-			new anchor.BN(Math.round((random4 / allRandom) * 100)),
+		await cyberWave.rpc.region_result_calculate(
+			new anchor.BN(makeId(8)),
+			new anchor.BN(makeId(8)),
+			new anchor.BN(makeId(8)),
+			new anchor.BN(makeId(8)),
+			new anchor.BN(res.region_1),
+			new anchor.BN(res.region_2),
+			new anchor.BN(res.region_3),
+			new anchor.BN(res.region_4),
 			{
 			accounts: {
 				centralRegionAccount: newDataAccountPubkey,
 			},
 			signers: [],
 		})
-		const result = await waveSizeCalculation.account.regionInfo.fetch(newDataAccountPubkey)
+		const result = await cyberWave.account.regionInfo.fetch(newDataAccountPubkey)
 		console.log(result)
 	})
 
