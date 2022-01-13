@@ -14,21 +14,67 @@ pub mod cyber_wave {
 
 	use super::*;
 	pub fn initialize(ctx: Context<Initialize>, jacket: String, head_addon: String, facewear: String, 
-					tatoo: String, clothes: String, neckwear: String, character_type: String) -> ProgramResult {
+					tattoo: String, clothes: String, neckwear: String, character_type: String) -> ProgramResult {
 		let account_data = &mut ctx.accounts.my_account;
 		let user: &Signer = &ctx.accounts.user;
 		msg!("user pubkey: {:?}", &(&user.key).to_string().clone());
 		account_data.level = 1;
 		account_data.exp = 0;
-		// TODO: jacket, head_addon, etc로 계산
 		account_data.power_magnified = 10000; // original power magnified * 10000
+		// TODO: 정확히 옷 이름들 어떻게 되는지 uncommon etc..
+		let FACEWEAR: [Box<[&str]>; 4] = [Box::new(["Cyber Scouter", "Heart Sunglasses", "In Ear Microphone", "Bitconin Football Mask"]), 
+							Box::new(["Cyber Goggle", "Diamond Sunglasses", "Diamond Lace Veil", "Neon Graffiti Mask"]),
+							Box::new(["Straight Neon Sunglasses", "Error Glitch Goggle", "Neon Teeth Mask"]),
+							Box::new(["Emotion Neon Goggle", "Cyber Mask"])];
+		let HEAD_ADDON: [Box<[& str]>; 4] = [Box::new(["Infinite Ring", "Star Ring"]),
+							Box::new(["Cyber Neon Ring", "Bubble"]),
+							Box::new(["Diamond Fragments", "Tech Dices"]),
+							Box::new(["LED Skulls"])];
+		let JACKET: [Box<[&str]>; 4] = [Box::new(["White Lamb Leather", "Cyber Coated Nylon"]),
+							Box::new(["Pink Leopard Fake Fur", "Green Leopard Fake Fur"]),
+							Box::new(["Cyber Vintage Down"]),
+							Box::new(["Bolero Bike", "Cyber Flight"])];
+		let NECKWEAR: [Box<[&str]>; 4] = [Box::new([]),
+							Box::new(["LED Choker", "Cyber Choker"]),
+							Box::new(["LED Headphone"]),
+							Box::new(["Cyber Wave Choker"])];
+		let CLOTHES: [Box<[&str]>; 4] = [Box::new(["Crop Top", "Camouflage Sleeveless", "Stand Neck Mesh Top"]),
+							Box::new(["Black Mesh Shirt", "Neoprene Crop Top", "Oversized Sweater"]),
+							Box::new(["Leather String Halter Neck", "Cyber Strap Top"]),
+							Box::new([])];
+		let TATTOO: [Box<[&str]>; 4] = [Box::new(["Indian", "Letter", "Thunder Scar"]),
+							Box::new(["Cyber Pattern", "Snake"]),
+							Box::new(["Star Sparkles", "Barcode"]),
+							Box::new(["Graffiti"])];
+		fn magnify(item: String, item_list: [Box<[&str]>; 4], 
+				account_data: &mut anchor_lang::Account<ProgramAccountInfo>) {
+			if item_list[0].iter().any(|&i| i == item) {
+				account_data.power_magnified = ((account_data.power_magnified as f32) * 1.1) as u32;
+			} else if item_list[1].iter().any(|&i| i == item) {
+				account_data.power_magnified = ((account_data.power_magnified as f32) * 1.2) as u32;
+			} else if item_list[2].iter().any(|&i| i == item) {
+				account_data.power_magnified = ((account_data.power_magnified as f32) * 1.3) as u32;
+			} else if item_list[3].iter().any(|&i| i == item) {
+				account_data.power_magnified = ((account_data.power_magnified as f32) * 1.5) as u32;
+			}
+		}
+		magnify(jacket, JACKET, account_data);
+		magnify(head_addon, HEAD_ADDON, account_data);
+		magnify(facewear, FACEWEAR, account_data);
+		magnify(tattoo, TATTOO, account_data);
+		magnify(clothes, CLOTHES, account_data);
+		magnify(neckwear, NECKWEAR, account_data);
+
 		account_data.level_power = 1000;
 		account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;
 		account_data.account_pubkey = (&user.key).to_string().clone();
 		account_data.weapon_pubkey = "00000000000000000000000000000000000000000000".to_string();
 		account_data.boost = 0;
 		account_data.stun_end_at = 0;
-		account_data.character_type = character_type.to_string();
+		account_data.character_type = character_type;
+		if (account_data.character_type == String::from("ARIES0")) {
+			account_data.power_magnified = ((account_data.power_magnified as f32) * 1.01) as u32;
+		}
 		account_data.ability_able_at = 0;
 		account_data.region = "BASE_MENT".to_string();
 
