@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 use solana_program::clock::Clock;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
-declare_id!("DpE2qzuKBrt7HCffFd9Wj8iDZpH9YeHh5mVg3ebrpPuC");
+declare_id!("ETmGRPZESjms15H8QWeqE9oGk7pKKmYENv6MBSKEiD1A");
 
 #[program]
 pub mod cyber_wave {
@@ -194,6 +194,41 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
+	pub fn heal_character(ctx: Context<HealCharacter>) -> ProgramResult {
+		let heal_character = &mut ctx.accounts.heal_character_account;
+		let injured_character = &mut ctx.accounts.injured_character_account;
+		msg!("1");
+		let current_time = Clock::get().unwrap().unix_timestamp as u32;
+		msg!("2");
+		if heal_character.character_type != "ZINX00" {
+			msg!("111");
+			return Err(Errors::NotHealingCharacter.into());
+		}
+		msg!("3");
+		if heal_character.ability_able_at > current_time {
+			msg!("122");
+			return Err(Errors::HealPowerNotOn.into());
+		}
+		msg!("4");
+		if injured_character.stun_end_at < current_time {
+			msg!("133");
+			return Err(Errors::NotInjured.into());
+		}
+		msg!("5");
+		heal_character.ability_able_at = current_time + 604800;
+		msg!("6");
+		injured_character.stun_end_at = current_time;
+		msg!("7");
+		Ok(())
+	}
+
+	pub fn tmp_injured_character(ctx: Context<InjuredCharacter>) -> ProgramResult {
+		let injured_character = &mut ctx.accounts.injured_character_account;
+		let current_time = Clock::get().unwrap().unix_timestamp as u32;
+		injured_character.stun_end_at = current_time + 86400000;
+		Ok(())
+	}
+
 	pub fn initialize_region_data(_ctx: Context<InitializeRegion>) -> ProgramResult {
 		Ok(())
 	}
@@ -296,4 +331,29 @@ pub struct InitializeRegionResult<'info> {
 	#[account(mut)]
 	pub user: Signer<'info>,
 	pub system_program: Program<'info, System>,
+}
+
+
+#[derive(Accounts)]
+pub struct HealCharacter<'info> {
+	#[account(mut)]
+	pub heal_character_account: Account<'info, ProgramAccountInfo>,
+	#[account(mut)]
+	pub injured_character_account: Account<'info, ProgramAccountInfo>
+}
+
+#[derive(Accounts)]
+pub struct InjuredCharacter<'info> {
+	#[account(mut)]
+	pub injured_character_account: Account<'info, ProgramAccountInfo>,
+}
+
+#[error]
+pub enum Errors {
+	#[msg("Not healing character")]
+	NotHealingCharacter,
+	#[msg("Healing character is not in power")]
+	HealPowerNotOn,
+	#[msg("character not injured")]
+	NotInjured,
 }
