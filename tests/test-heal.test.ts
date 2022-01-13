@@ -1,6 +1,6 @@
 import * as anchor from '@project-serum/anchor'
 import * as borsh from 'borsh'
-import { ProgramAccountInfoSchema, ProgramAccountInfo } from './borsh.classes';
+import { ProgramAccountInfoSchema, ProgramAccountInfo } from './borsh.classes'
 import { clientKey, serverMainKey } from './config/config'
 
 jest.setTimeout(30000000)

@@ -8,15 +8,15 @@ import { clientKey, serverMainKey, SEED, mintPublicKey } from './config/config'
 import fetch from 'node-fetch'
 
 interface DetailedMetadata {
-    attributes: { [key: string]: string }[];
-    description: string;
-    external_url: string;
-    image: string;
-    name: string;
-    properties: string | {}[];
-    seller_fee_basis_point: number;
-    symbol: string;
-    status: {}[];
+    attributes: { [key: string]: string }[]
+    description: string
+    external_url: string
+    image: string
+    name: string
+    properties: string | {}[]
+    seller_fee_basis_point: number
+    symbol: string
+    status: {}[]
 }
 
 jest.setTimeout(30000000)
@@ -75,20 +75,20 @@ describe('cpi', () => {
         // initialize, Check and create Dao Data Account
         if (newDataAccount === null) {
             // get arweave uri
-            const metadataAccounts = await metaplex.programs.metadata.Metadata.getPDA(mint.publicKey);
+            const metadataAccounts = await metaplex.programs.metadata.Metadata.getPDA(mint.publicKey)
             const metadata = await metaplex.programs.metadata.Metadata.load(
-                new Connection(clusterApiUrl("devnet")),
+                provider.connection,
                 metadataAccounts
-            );
+            )
 
             // get metadata from arweave uri
-            const res = await fetch(metadata.data.data.uri);
+            const res = await fetch(metadata.data.data.uri)
             // unwrap response as json
-            const detailMetadata: DetailedMetadata = await res.json();
+            const detailMetadata: DetailedMetadata = await res.json() as any
 
             //users.attributes[0-12]["trait_type"|"value"]
             const powerAtts = ["jacket", "head add-on", "facewear", "tattoo", "clothes", "neckwear", "skin type"]
-            let attributes: { [key: string]: string } = {};
+            let attributes: { [key: string]: string } = {}
             for (var att of detailMetadata.attributes) {
                 if (powerAtts.includes(Object.values(att)[0])) {
                     attributes[Object.values(att)[0]] = Object.values(att)[1]
@@ -119,7 +119,7 @@ describe('cpi', () => {
             let prevLamports = await provider.connection.getBalance(clientWalletAccount.publicKey)
             console.log(prevLamports / 1000000000)
 
-            const receiverAccount = await provider.connection.getAccountInfo(associatedReceiverTokenAddr);
+            const receiverAccount = await provider.connection.getAccountInfo(associatedReceiverTokenAddr)
 
             if (receiverAccount === null) {
                 instructions.push(

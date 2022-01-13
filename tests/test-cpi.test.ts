@@ -29,7 +29,7 @@ describe('cpi', () => {
 	let newDataAccountPubkey: anchor.web3.PublicKey
 	// let newDataAccount: AccountInfo
 
-	let mint: Token;
+	let mint: Token
 	const SIZE = borsh.serialize(
 		ProgramAccountInfoSchema,
 		new ProgramAccountInfo(),
@@ -104,7 +104,7 @@ describe('cpi', () => {
 				let prevLamports = await provider.connection.getBalance(clientWalletAccount.publicKey)
 				console.log(prevLamports / 1000000000)
 
-				const receiverAccount = await provider.connection.getAccountInfo(associatedReceiverTokenAddr);
+				const receiverAccount = await provider.connection.getAccountInfo(associatedReceiverTokenAddr)
 
 				if (receiverAccount === null) {
 					instructions.push(

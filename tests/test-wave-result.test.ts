@@ -47,18 +47,20 @@ describe('wave-result', () => {
 	        const senderTokenAccount = await mint.getOrCreateAssociatedAccountInfo(
 				serverWalletAccount.publicKey
 			)
-			let transferTokenAmount: number = 0
+			let transferTokenAmount: number
 			if (account.region === "REGION_01") {
 				transferTokenAmount = result.region_1_zombie_power * account.power / result.region_1_characters_power
 			}
-			if (account.region === "REGION_02") {
+			else if (account.region === "REGION_02") {
 				transferTokenAmount = result.region_2_zombie_power * account.power / result.region_2_characters_power
 			}
-			if (account.region === "REGION_03") {
+			else if (account.region === "REGION_03") {
 				transferTokenAmount = result.region_3_zombie_power * account.power / result.region_3_characters_power
 			}
-			if (account.region === "REGION_04") {
+			else if (account.region === "REGION_04") {
 				transferTokenAmount = result.region_4_zombie_power * account.power / result.region_4_characters_power
+			} else {
+				transferTokenAmount = 0
 			}
 			const instructions: anchor.web3.TransactionInstruction[] = [
 				Token.createTransferInstruction(

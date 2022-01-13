@@ -26,18 +26,18 @@ export class ProgramAccountInfo {
 		region: String
 	} | undefined = undefined) {
 		if (fields) {
-			this.level = fields.level;
-			this.exp = fields.exp;
-			this.power_magnified = fields.power_magnified;
-			this.level_power = fields.level_power;
-			this.last_calculated_at = fields.last_calculated_at;
-			this.account_pubkey = fields.account_pubkey;
-			this.weapon_pubkey = fields.weapon_pubkey;
-			this.boost = fields.boost;
-			this.stun_end_at = fields.stun_end_at;
+			this.level = fields.level
+			this.exp = fields.exp
+			this.power_magnified = fields.power_magnified
+			this.level_power = fields.level_power
+			this.last_calculated_at = fields.last_calculated_at
+			this.account_pubkey = fields.account_pubkey
+			this.weapon_pubkey = fields.weapon_pubkey
+			this.boost = fields.boost
+			this.stun_end_at = fields.stun_end_at
 			this.character_type = fields.character_type
-			this.ability_able_at = fields.ability_able_at;
-			this.region = fields.region;
+			this.ability_able_at = fields.ability_able_at
+			this.region = fields.region
 		}
 	}
 }
@@ -74,10 +74,10 @@ export class RegionInfo {
 		region_4_power: number,
 	} | undefined = undefined) {
 		if (fields) {
-			this.region_1_power = fields.region_1_power;
-			this.region_2_power = fields.region_2_power;
-			this.region_3_power = fields.region_3_power;
-			this.region_4_power = fields.region_4_power;
+			this.region_1_power = fields.region_1_power
+			this.region_2_power = fields.region_2_power
+			this.region_3_power = fields.region_3_power
+			this.region_4_power = fields.region_4_power
 		}
 	}
 }
