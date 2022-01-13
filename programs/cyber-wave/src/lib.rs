@@ -197,6 +197,10 @@ pub mod cyber_wave {
 	pub fn initialize_region_data(_ctx: Context<InitializeRegion>) -> ProgramResult {
 		Ok(())
 	}
+	
+	pub fn initialize_region_result_data(_ctx: Context<InitializeRegionResult>) -> ProgramResult {
+		Ok(())
+	}
 }
 
 #[derive(Accounts)]
@@ -280,6 +284,15 @@ pub struct RegionResult<'info> {
 pub struct InitializeRegion<'info> {
 	#[account(zero)]
 	pub my_account: Account<'info, RegionInfo>,
+	#[account(mut)]
+	pub user: Signer<'info>,
+	pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct InitializeRegionResult<'info> {
+	#[account(zero)]
+	pub my_account: Account<'info, RegionResultInfo>,
 	#[account(mut)]
 	pub user: Signer<'info>,
 	pub system_program: Program<'info, System>,

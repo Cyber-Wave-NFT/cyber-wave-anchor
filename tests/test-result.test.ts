@@ -1,6 +1,6 @@
 import * as anchor from '@project-serum/anchor'
 import * as borsh from 'borsh'
-import { ProgramAccountInfo, ProgramAccountInfoSchema, RegionInfo, RegionInfoSchema } from './borsh.classes'
+import { ProgramAccountInfo, ProgramAccountInfoSchema, RegionInfo, RegionInfoSchema, RegionResultInfo, RegionResultInfoSchema } from './borsh.classes'
 import { Utils } from './utils/utils'
 
 jest.setTimeout(30000000)
@@ -42,8 +42,8 @@ describe('cpi', () => {
 			return acc
 		}, { region_1: 0, region_2: 0, region_3: 0, region_4: 0 })
 		const SIZE = borsh.serialize(
-			RegionInfoSchema,
-			new RegionInfo(),
+			RegionResultInfoSchema,
+			new RegionResultInfo(),
 		  ).length + 8
 		centralRegionAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 			serverWalletAccount.publicKey,
@@ -98,7 +98,7 @@ describe('cpi', () => {
 			},
 			signers: [],
 		})
-		const result = await cyberWave.account.regionInfo.fetch(centralRegionAccountPubkey)
+		const result = await cyberWave.account.regionResultInfo.fetch(centralRegionResultAccountPubkey)
 		console.log(result)
 	})
 

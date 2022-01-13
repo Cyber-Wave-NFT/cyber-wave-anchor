@@ -90,3 +90,66 @@ export const RegionInfoSchema = new Map([
 		['region_4_power', 'u32']
 	]}],
 ])
+
+export class RegionResultInfo {
+	region_1_characters_power = 0
+	region_1_zombie_power = 0
+	region_1_is_win = 0
+	region_2_characters_power = 0
+	region_2_zombie_power = 0
+	region_2_is_win = 0
+	region_3_characters_power = 0
+	region_3_zombie_power = 0
+	region_3_is_win = 0
+	region_4_characters_power = 0
+	region_4_zombie_power = 0
+	region_4_is_win = 0
+	constructor(fields: {
+		region_1_characters_power: number,
+		region_1_zombie_power: number,
+		region_1_is_win: number,
+		region_2_characters_power: number,
+		region_2_zombie_power: number,
+		region_2_is_win: number,
+		region_3_characters_power: number,
+		region_3_zombie_power: number,
+		region_3_is_win: number,
+		region_4_characters_power: number,
+		region_4_zombie_power: number,
+		region_4_is_win: number,
+	} | undefined = undefined) {
+		if (fields) {
+			this.region_1_characters_power = this.region_1_characters_power
+			this.region_1_zombie_power = this.region_1_zombie_power
+			this.region_1_is_win = this.region_1_is_win
+			this.region_2_characters_power = this.region_2_characters_power
+			this.region_2_zombie_power = this.region_2_zombie_power
+			this.region_2_is_win = this.region_2_is_win
+			this.region_3_characters_power = this.region_3_characters_power
+			this.region_3_zombie_power = this.region_3_zombie_power
+			this.region_3_is_win = this.region_3_is_win
+			this.region_4_characters_power = this.region_4_characters_power
+			this.region_4_zombie_power = this.region_4_zombie_power
+			this.region_4_is_win = this.region_4_is_win
+		}
+	}
+}
+
+export const RegionResultInfoSchema = new Map([
+	[RegionResultInfo, {
+		kind: 'struct', fields: [
+			['region_1_characters_power', 'u32'],
+			['region_1_zombie_power', 'u32'],
+			['region_1_is_win', 'u32'],
+			['region_2_characters_power', 'u32'],
+			['region_2_zombie_power', 'u32'],
+			['region_2_is_win', 'u32'],
+			['region_3_characters_power', 'u32'],
+			['region_3_zombie_power', 'u32'],
+			['region_3_is_win', 'u32'],
+			['region_4_characters_power', 'u32'],
+			['region_4_zombie_power', 'u32'],
+			['region_4_is_win', 'u32'],
+		]
+	}],
+])
