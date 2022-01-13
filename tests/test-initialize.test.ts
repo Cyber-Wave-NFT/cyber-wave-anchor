@@ -1,12 +1,11 @@
 import * as anchor from '@project-serum/anchor'
-import { clusterApiUrl, Connection, Keypair, Transaction, SystemProgram } from "@solana/web3.js";
-import { Token, TOKEN_PROGRAM_ID, MintLayout, AccountLayout, AccountInfo } from "@solana/spl-token";
-import * as metaplex from '@metaplex/js';
+import { clusterApiUrl, Connection } from "@solana/web3.js"
+import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token"
+import * as metaplex from '@metaplex/js'
 import * as borsh from 'borsh'
-import { ProgramAccountInfoSchema, ProgramAccountInfo } from './borsh.classes';
+import { ProgramAccountInfoSchema, ProgramAccountInfo } from './borsh.classes'
 import { clientKey, serverMainKey, SEED, mintPublicKey } from './config/config'
-import fetch from 'node-fetch';
-import config from '../jest.config';
+import fetch from 'node-fetch'
 
 interface DetailedMetadata {
     attributes: { [key: string]: string }[];

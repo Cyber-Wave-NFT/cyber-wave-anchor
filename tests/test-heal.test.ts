@@ -1,5 +1,4 @@
 import * as anchor from '@project-serum/anchor'
-import { create } from 'ts-node'
 import * as borsh from 'borsh'
 import { ProgramAccountInfoSchema, ProgramAccountInfo } from './borsh.classes';
 import { clientKey, serverMainKey } from './config/config'

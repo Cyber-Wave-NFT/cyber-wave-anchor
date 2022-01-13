@@ -1,10 +1,6 @@
 import * as anchor from '@project-serum/anchor'
-import { clusterApiUrl, Connection, Keypair, Transaction, SystemProgram } from "@solana/web3.js";
-import { Token, TOKEN_PROGRAM_ID, MintLayout, AccountLayout, AccountInfo } from "@solana/spl-token";
-import * as borsh from 'borsh'
-import { ProgramAccountInfoSchema, ProgramAccountInfo } from './borsh.classes';
+import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token"
 import { clientKey, serverMainKey, SEED, mintPublicKey } from './config/config'
-import config from '../jest.config';
 
 jest.setTimeout(30000000)
 describe('cpi', () => {

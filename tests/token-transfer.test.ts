@@ -1,7 +1,5 @@
-import * as anchor from '@project-serum/anchor';
-import { Program } from '@project-serum/anchor';
-import { clusterApiUrl, Connection, Keypair, Transaction, SystemProgram } from "@solana/web3.js";
-import { Token, TOKEN_PROGRAM_ID, MintLayout, AccountLayout, u64, AccountInfo } from "@solana/spl-token";
+import * as anchor from '@project-serum/anchor'
+import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token"
 
 describe('token-cpi', () => {
 
