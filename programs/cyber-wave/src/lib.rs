@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 use solana_program::clock::Clock;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
-declare_id!("DH2wfDuYcVUYj8TJcGrE8nUqQ9wboqoHrPWrpbLQRJRB");
+declare_id!("DpE2qzuKBrt7HCffFd9Wj8iDZpH9YeHh5mVg3ebrpPuC");
 
 #[program]
 pub mod cyber_wave {
@@ -116,7 +116,7 @@ pub mod cyber_wave {
 		// TODO: power, level_power 계산
 		account_data.account_pubkey = ctx.accounts.user.to_account_info().key.to_string();
 		account_data.level = 1 + ((account_data.exp / 50) as f64).sqrt().round() as u32; 	// total_exp = 50 * level^2
-		account_data.power = 1.01_f64.powf((account_data.level - 1) as f64) as u32 * 1000; 	// 1% power up per level up 1.01^(level - 1) * 1000(default power)
+		account_data.level_power = 1.01_f64.powf((account_data.level - 1) as f64) as u32 * 1000; 	// 1% power up per level up 1.01^(level - 1) * 1000(default power)
 		account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;		// register time
 		account_data.region = "BASE_MENT".to_string();										// default region
 
