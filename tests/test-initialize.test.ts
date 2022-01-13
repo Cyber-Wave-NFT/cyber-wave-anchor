@@ -5,6 +5,7 @@ import * as metaplex from '@metaplex/js';
 import * as borsh from 'borsh'
 import { ProgramAccountInfoSchema, ProgramAccountInfo } from './borsh.classes';
 import { clientKey, serverMainKey, SEED, mintPublicKey } from './config/config'
+import fetch from 'node-fetch';
 import config from '../jest.config';
 
 jest.setTimeout(30000000)
@@ -58,17 +59,24 @@ describe('cpi', () => {
             cyberWave.programId
         )
 
-        const metadataAccounts = await metaplex.programs.metadata.Metadata.getPDA(mint.publicKey);
-        const metadata = await metaplex.programs.metadata.Metadata.load(
-            new Connection(clusterApiUrl("devnet")),
-            metadataAccounts
-        );
-        metadata.data.data.uri
-
         const newDataAccount = await cyberWave.provider.connection.getAccountInfo(newDataAccountPubkey)
 
         // initialize, Check and create Dao Data Account
         if (newDataAccount === null) {
+            // get arweave uri
+            const metadataAccounts = await metaplex.programs.metadata.Metadata.getPDA(mint.publicKey);
+            const metadata = await metaplex.programs.metadata.Metadata.load(
+                new Connection(clusterApiUrl("devnet")),
+                metadataAccounts
+            );
+
+            // get metadata from arweave uri
+            const res = await fetch(metadata.data.data.uri);
+            // unwrap response as json
+            const detailMetadata = await res.json();
+
+            //users.attributes[0-12]["trait_type"|"value"]
+
             const sender = clientWalletAccount
             const receiver = serverWalletAccount
 

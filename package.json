@@ -17,12 +17,14 @@
 		"@project-serum/anchor": "^0.18.0",
 		"@solana/spl-token": "^0.1.8",
 		"@metaplex/js": "^4.11.3",
+		"node-fetch": "^2.6.1",
 		"base-58": "0.0.1",
 		"ts-node": "^10.4.0",
 		"tsc": "^2.0.3"
 	},
 	"devDependencies": {
 		"@types/jest": "^27.4.0",
+		"@types/node-fetch": "^2.6.1",
 		"jest": "^27.4.5",
 		"ts-jest": "^27.1.2",
 		"typescript": "^4.5.4"
