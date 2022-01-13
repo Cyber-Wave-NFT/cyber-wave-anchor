@@ -2,6 +2,7 @@
 use anchor_lang::prelude::*;
 use solana_program::clock::Clock;
 use crate::ProgramAccountInfo;
+use sha256::digest;
 
 pub fn calculate_level_and_exp<'info>(account_data: &mut Account<'info, ProgramAccountInfo>) {
 	// exp up occurs power up
@@ -29,4 +30,12 @@ pub fn calculate_result(zombie_power: u32, characters_power: u32) -> bool {
 	let winning_rate = ((characters_power as f64) / (zombie_power as f64)) * 70_f64;
 	let random_number = 100_f64; // 1에서 100 사이 값
 	return winning_rate > random_number;
+}
+
+pub fn calculate_random(random_seed: String) -> u32 {
+	// generate random number 0~100
+	let val = digest(random_seed);
+	let front_seed = &val[0..2];
+	let result = i64::from_str_radix(front_seed, 16).unwrap();
+	return ((result as f32 / 256_f32) * 100_f32) as u32;
 }
