@@ -2,6 +2,7 @@
 use anchor_lang::prelude::*;
 use solana_program::clock::Clock;
 use crate::ProgramAccountInfo;
+use sha256::digest;
 
 pub fn calculate_level_and_exp<'info>(account_data: &mut Account<'info, ProgramAccountInfo>) {
 	// exp up occurs power up
@@ -23,4 +24,12 @@ pub fn calculate_level_and_exp<'info>(account_data: &mut Account<'info, ProgramA
 		}
 		time_elapsed -= need_time_to_level_up;
 	}
+}
+
+pub fn calculate_random(random_seed: String) -> u32 {
+	// generate random number 0~100
+	let val = digest(random_seed);
+	let front_seed = &val[0..2];
+	let result = i64::from_str_radix(front_seed, 16).unwrap();
+	return ((result as f32 / 256_f32) * 100_f32) as u32;
 }
