@@ -22,8 +22,8 @@ describe('heal', () => {
     console.log(serverWalletAccount.publicKey.toBase58())
 
     // let newDataAccount: AccountInfo
-    const HEAL_NFT = "abcd"
-    const INJURED_NFT = "defg"
+    const HEAL_NFT = "abcd12344"
+    const INJURED_NFT = "defg12344"
 
     const SIZE = borsh.serialize(
         ProgramAccountInfoSchema,
@@ -114,23 +114,23 @@ describe('heal', () => {
                 }
             )
         }
-
+        const injuredDataAccountt1 = await cyberWave.account.programAccountInfo.fetch(injuredDataAccountPubkey)
         await cyberWave.rpc.tmpInjuredCharacter({
             accounts: {
                 injuredCharacterAccount: injuredDataAccountPubkey
             },
-            signers: [serverWalletAccount],
+            signers: [],
         })
-
+        const injuredDataAccountt = await cyberWave.account.programAccountInfo.fetch(injuredDataAccountPubkey)
         const tx = await cyberWave.rpc.healCharacter({
             accounts: {
                 healCharacterAccount: healDataAccountPubkey,
                 injuredCharacterAccount: injuredDataAccountPubkey,
             },
-            signers: [serverWalletAccount],
+            signers: [],
         })
-        const healDataAccountAfter = await cyberWave.provider.connection.getAccountInfo(healDataAccountPubkey)
-        const injuredDataAccountAfter = await cyberWave.provider.connection.getAccountInfo(injuredDataAccountPubkey)
+        const healDataAccountAfter = await cyberWave.account.programAccountInfo.fetch(healDataAccountPubkey)
+        const injuredDataAccountAfter = await cyberWave.account.programAccountInfo.fetch(injuredDataAccountPubkey)
         console.log("healDataAccount:", healDataAccountAfter)
         console.log("injuredDataAccount:", injuredDataAccountAfter)
     })
