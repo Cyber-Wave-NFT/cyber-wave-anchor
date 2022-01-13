@@ -198,7 +198,7 @@ pub mod cyber_wave {
 		let heal_character = &mut ctx.accounts.heal_character_account;
 		let injured_character = &mut ctx.accounts.injured_character_account;
 		let current_time = Clock::get().unwrap().unix_timestamp as u32;
-		if heal_character.character_type != "heal" {
+		if heal_character.character_type != "ZINX00" {
 			return Err(Errors::NotHealingCharacter.into());
 		}
 		if heal_character.ability_able_at > current_time {
@@ -209,6 +209,13 @@ pub mod cyber_wave {
 		}
 		heal_character.ability_able_at = current_time + 604800;
 		injured_character.stun_end_at = current_time;
+		Ok(())
+	}
+
+	pub fn tmp_injured_character(ctx: Context<InjuredCharacter>) -> ProgramResult {
+		let injured_character = &mut ctx.accounts.injured_character_account;
+		let current_time = Clock::get().unwrap().unix_timestamp as u32;
+		injured_character.stun_end_at = current_time + 86400;
 		Ok(())
 	}
 
@@ -321,6 +328,11 @@ pub struct InitializeRegionResult<'info> {
 pub struct HealCharacter<'info> {
 	pub heal_character_account: Account<'info, ProgramAccountInfo>,
 	pub injured_character_account: Account<'info, ProgramAccountInfo>
+}
+
+#[derive(Accounts)]
+pub struct InjuredCharacter<'info> {
+	pub injured_character_account: Account<'info, ProgramAccountInfo>,
 }
 
 #[error]
