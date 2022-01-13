@@ -1,6 +1,7 @@
 import * as anchor from '@project-serum/anchor'
 import { clusterApiUrl, Connection, Keypair, Transaction, SystemProgram } from "@solana/web3.js";
 import { Token, TOKEN_PROGRAM_ID, MintLayout, AccountLayout, AccountInfo } from "@solana/spl-token";
+import * as metaplex from '@metaplex/js';
 import * as borsh from 'borsh'
 import { ProgramAccountInfoSchema, ProgramAccountInfo } from './borsh.classes';
 import { clientKey, serverMainKey, SEED, mintPublicKey } from './config/config'
@@ -57,8 +58,12 @@ describe('cpi', () => {
             cyberWave.programId
         )
 
-        // get nft token metadata public key
-        const [metadataPubkey, metadataPubkeyBump] = await anchor.web3.PublicKey.findProgramAddress(["metadata", cyberWave.programId.toBuffer(), mint.publicKey.toBuffer()], cyberWave.programId)
+        const metadataAccounts = await metaplex.programs.metadata.Metadata.getPDA(mint.publicKey);
+        const metadata = await metaplex.programs.metadata.Metadata.load(
+            new Connection(clusterApiUrl("devnet")),
+            metadataAccounts
+        );
+        metadata.data.data.uri
 
         const newDataAccount = await cyberWave.provider.connection.getAccountInfo(newDataAccountPubkey)
 
