@@ -7,3 +7,4 @@ export const serverMainKey = Buffer.from([27,81,124,213,249,242,152,45,212,167,2
 
 export const SEED = '92sPFo54jP2qwcd' // spl token
 export const mintPublicKey = "92sPFo54jPKN75FuY5HXC7qMC8z31YR8juRJi9Z3Z2BK"
+export const cyberPublicKey = "92sPFo54jPKN75FuY5HXC7qMC8z31YR8juRJi9Z3Z2BK"

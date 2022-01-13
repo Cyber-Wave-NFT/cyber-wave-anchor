@@ -1,7 +1,7 @@
 import * as anchor from '@project-serum/anchor'
-import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token"
 import * as borsh from 'borsh'
-import { ProgramAccountInfoSchema, ProgramAccountInfo } from './borsh.classes';
+import { ProgramAccountInfoSchema, ProgramAccountInfo } from './borsh.classes'
 
 jest.setTimeout(30000000)
 describe('cpi', () => {
@@ -11,8 +11,7 @@ describe('cpi', () => {
 	anchor.setProvider(provider)
 	
 	// DAO 프로그램, register 프로그램 가져오기
-	// TODO: register 이름 바꾸기
-	const register = anchor.workspace.CyberWave
+	const cyberWave = anchor.workspace.CyberWave
 
 	// 로컬 월렛 키페어 가져오기
 	// 61KqL2ZUFeYrEqKbFKGSZ9URJj1Y7YyWNR94ZPSnsjRv
@@ -60,7 +59,7 @@ describe('cpi', () => {
 		newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 			serverWalletAccount.publicKey,
 			SEED,
-			register.programId
+			cyberWave.programId
 		)
 
 		const metaDataProgramPubkey = new anchor.web3.PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s")
@@ -68,7 +67,7 @@ describe('cpi', () => {
 		const a = ""
 		const [metadataPubkey, metadataPubkeyBump] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("metadata", "utf-8"), metaDataProgramPubkey.toBuffer(), mint.publicKey.toBuffer()], metaDataProgramPubkey)
 		console.log(metadataPubkey.toBase58())
-		const newDataAccount = await register.provider.connection.getAccountInfo(newDataAccountPubkey)
+		const newDataAccount = await cyberWave.provider.connection.getAccountInfo(newDataAccountPubkey)
 
 		// initialize, Check and create Dao Data Account
 		if (newDataAccount === null){
@@ -79,7 +78,7 @@ describe('cpi', () => {
 			newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 				serverWalletAccount.publicKey,
 				SEED,
-				register.programId
+				cyberWave.programId
 			)
 			const lamports = await provider.connection.getMinimumBalanceForRentExemption(SIZE)
 			const instructions: anchor.web3.TransactionInstruction[] = [
@@ -90,11 +89,11 @@ describe('cpi', () => {
 					newAccountPubkey: newDataAccountPubkey,
 					lamports,
 					space: SIZE,
-					programId: register.programId,
+					programId: cyberWave.programId,
 				}),
 			]
 			// newDataAccount가 가지고있는 DAO 소속 data account
-			const newDataAccount = await register.provider.connection.getAccountInfo(newDataAccountPubkey)
+			const newDataAccount = await cyberWave.provider.connection.getAccountInfo(newDataAccountPubkey)
 			// data account가 null이면 DAO가 홀딩하는 data account를 만들어준다.
 			// null이 아니면 그냥 해당 데이터 어카운트를 사용한다.
 			// TODO: null 밖에서 확인했으니 지워야할듯
@@ -131,7 +130,7 @@ describe('cpi', () => {
 				)
 
 				// 트랜잭션 실제 발생
-				const tx = await register.rpc.initialize({
+				const tx = await cyberWave.rpc.initialize({
 					accounts: {
 						myAccount: newDataAccountPubkey,
 						metaData: metadataPubkey,
@@ -142,7 +141,7 @@ describe('cpi', () => {
 					signers: [clientWalletAccount, serverWalletAccount],
 				})
 
-				const result = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
+				const result = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
 				console.log('Your transaction signature', tx)
 				console.log(`newDataAccount:${newDataAccountPubkey}`)
 				console.log(result)
@@ -177,7 +176,7 @@ describe('cpi', () => {
 					newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 						serverWalletAccount.publicKey,
 						SEED,
-						register.programId
+						cyberWave.programId
 					)
 					const sender = clientWalletAccount
 					const receiver = serverWalletAccount
@@ -214,7 +213,7 @@ describe('cpi', () => {
 					console.log(prevLamports / 1000000000)
 
 					// 트랜잭션 실제 발생
-					const tx = await register.rpc.register({
+					const tx = await cyberWave.rpc.register({
 						accounts: {
 							myAccount: newDataAccountPubkey,
 							user: clientWalletAccount.publicKey,
@@ -224,7 +223,7 @@ describe('cpi', () => {
 					})
 
 					console.log('Your transaction signature', tx)
-					const result = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
+					const result = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
 					console.log(result)
 
 					let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
@@ -237,7 +236,7 @@ describe('cpi', () => {
 					newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 						serverWalletAccount.publicKey,
 						SEED,
-						register.programId
+						cyberWave.programId
 					)
 					const mintPubkey = new anchor.web3.PublicKey("92sPFo54jPKN75FuY5HXC7qMC8z31YR8juRJi9Z3Z2BK")
 					mint = new Token(
@@ -271,7 +270,7 @@ describe('cpi', () => {
 					console.log(prevLamports / 1000000000)
 
 					// 트랜잭션 실제 발생
-					const tx = await register.rpc.unregister({
+					const tx = await cyberWave.rpc.unregister({
 						accounts: {
 							myAccount: newDataAccountPubkey,
 							user: clientWalletAccount.publicKey,
@@ -281,7 +280,7 @@ describe('cpi', () => {
 					})
 
 					console.log('Your transaction signature', tx)
-					const result = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
+					const result = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
 					console.log(result)
 					let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
 					console.log(postLamports / 1000000000)
@@ -293,7 +292,7 @@ describe('cpi', () => {
 				// 	},
 				// 	signers: [clientWalletAccount, serverWalletAccount],
 				// })
-				const result = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
+				const result = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
 				console.log(result)
 				// expect(result['level']).toBe(1)
 			} catch (err) {

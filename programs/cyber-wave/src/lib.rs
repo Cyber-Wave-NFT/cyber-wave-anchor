@@ -222,6 +222,39 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
+	pub fn calculate_result_from_account(ctx: Context<CalculateResult>, random: String) -> ProgramResult {
+		let update_account = &mut ctx.accounts.update_account;
+		let region_account = &ctx.accounts.region_result_account;
+		let current_time = Clock::get().unwrap().unix_timestamp as u32;
+		let mut is_win = false;
+		if update_account.region == "BASE_MENT" {
+			return Err(Errors::NotInRegion.into());
+		}
+		if update_account.region == "REGION_01" {
+			let is_win = region_account.region_1_is_win;
+		}
+		if update_account.region == "REGION_02" {
+			let is_win = region_account.region_2_is_win;
+		}
+		if update_account.region == "REGION_03" {
+			let is_win = region_account.region_3_is_win;
+		}
+		if update_account.region == "REGION_04" {
+			let is_win = region_account.region_4_is_win;
+		}
+		update_account.region = "BASE_MENT".to_string();
+		if !is_win {
+			if update_account.character_type == "VISION" {
+				let random_number = logic::calculate_random(random);
+				if random_number < 30 {
+					return Ok(());
+				}
+			}
+			update_account.stun_end_at = current_time + 86400;
+		}
+		Ok(())
+	}
+
 	pub fn tmp_injured_character(ctx: Context<InjuredCharacter>) -> ProgramResult {
 		let injured_character = &mut ctx.accounts.injured_character_account;
 		let current_time = Clock::get().unwrap().unix_timestamp as u32;
@@ -348,6 +381,13 @@ pub struct InjuredCharacter<'info> {
 	pub injured_character_account: Account<'info, ProgramAccountInfo>,
 }
 
+#[derive(Accounts)]
+pub struct CalculateResult<'info> {
+	#[account(mut)]
+	pub update_account: Account<'info, ProgramAccountInfo>,
+	pub region_result_account: Account<'info, RegionResultInfo>
+}
+
 #[error]
 pub enum Errors {
 	#[msg("Not healing character")]
@@ -356,4 +396,6 @@ pub enum Errors {
 	HealPowerNotOn,
 	#[msg("character not injured")]
 	NotInjured,
+	#[msg("account not in region")]
+	NotInRegion,
 }
