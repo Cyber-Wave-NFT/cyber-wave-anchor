@@ -161,6 +161,30 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
+	pub fn region_result_calculate(ctx: Context<RegionResult>, random1: String, random2: String, random3: String, random4: String,
+			region_1_power: u32, region_2_power: u32, region_3_power: u32, region_4_power: u32) -> ProgramResult {
+		let zombie_power = &mut ctx.accounts.central_region_account;
+		let result = &mut ctx.accounts.central_region_result_account;
+
+		result.region_1_zombie_power = zombie_power.region_1_power;
+		result.region_1_characters_power = region_1_power;
+		result.region_1_is_win = logic::calculate_result(result.region_1_zombie_power, result.region_1_characters_power, random1); // 여기 계산
+
+		result.region_2_zombie_power = zombie_power.region_2_power;
+		result.region_2_characters_power = region_2_power;
+		result.region_2_is_win = logic::calculate_result(result.region_2_zombie_power, result.region_2_characters_power, random2); // 여기 계산
+
+		result.region_3_zombie_power = zombie_power.region_3_power;
+		result.region_3_characters_power = region_3_power;
+		result.region_3_is_win = logic::calculate_result(result.region_3_zombie_power, result.region_3_characters_power, random3); // 여기 계산
+
+		result.region_4_zombie_power = zombie_power.region_4_power;
+		result.region_4_characters_power = region_4_power;
+		result.region_4_is_win = logic::calculate_result(result.region_4_zombie_power, result.region_4_characters_power, random4); // 여기 계산
+
+		Ok(())
+	}
+
 	pub fn set_region_data(ctx: Context<SetRegionData>, data: RegionInfo) -> ProgramResult {
 		let account_data = &mut ctx.accounts.account;
 		account_data.region_1_power = data.region_1_power;
@@ -189,6 +213,10 @@ pub mod cyber_wave {
 	}
 
 	pub fn initialize_region_data(_ctx: Context<InitializeRegion>) -> ProgramResult {
+		Ok(())
+	}
+	
+	pub fn initialize_region_result_data(_ctx: Context<InitializeRegionResult>) -> ProgramResult {
 		Ok(())
 	}
 }
@@ -228,10 +256,18 @@ pub struct Initialize<'info> {
 
 #[account]
 pub struct RegionResultInfo {
-	pub region_1_result: u32,
-	pub region_2_result: u32,
-	pub region_3_result: u32,
-	pub region_4_result: u32,
+	pub region_1_characters_power: u32,
+	pub region_1_zombie_power: u32,
+	pub region_1_is_win: bool,
+	pub region_2_characters_power: u32,
+	pub region_2_zombie_power: u32,
+	pub region_2_is_win: bool,
+	pub region_3_characters_power: u32,
+	pub region_3_zombie_power: u32,
+	pub region_3_is_win: bool,
+	pub region_4_characters_power: u32,
+	pub region_4_zombie_power: u32,
+	pub region_4_is_win: bool,
 }
 
 #[account]
@@ -255,6 +291,14 @@ pub struct WaveSizeCalc<'info> {
 }
 
 #[derive(Accounts)]
+pub struct RegionResult<'info> {
+	#[account(mut)]
+	pub central_region_account: Account<'info, RegionInfo>,
+	#[account(mut)]
+	pub central_region_result_account: Account<'info, RegionResultInfo>
+}
+
+#[derive(Accounts)]
 pub struct InitializeRegion<'info> {
 	#[account(zero)]
 	pub my_account: Account<'info, RegionInfo>,
@@ -262,6 +306,16 @@ pub struct InitializeRegion<'info> {
 	pub user: Signer<'info>,
 	pub system_program: Program<'info, System>,
 }
+
+#[derive(Accounts)]
+pub struct InitializeRegionResult<'info> {
+	#[account(zero)]
+	pub my_account: Account<'info, RegionResultInfo>,
+	#[account(mut)]
+	pub user: Signer<'info>,
+	pub system_program: Program<'info, System>,
+}
+
 
 #[derive(Accounts)]
 pub struct HealCharacter<'info> {

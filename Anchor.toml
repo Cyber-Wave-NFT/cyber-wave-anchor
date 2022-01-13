@@ -9,4 +9,4 @@ cluster = "devnet"
 wallet = "~/.config/solana/devnet.json"
 
 [scripts]
-test = "yarn test ./tests/test-initialize.test.ts"
+test = "yarn test"
