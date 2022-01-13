@@ -9,7 +9,7 @@ describe('cpi', () => {
 	const provider = anchor.Provider.local("https://api.devnet.solana.com")
 	console.log(provider.wallet.publicKey.toBase58())
 	anchor.setProvider(provider)
-	let newDataAccountPubkey: anchor.web3.PublicKey
+	let centralRegionAccountPubkey: anchor.web3.PublicKey
 	// DAO 프로그램, register 프로그램 가져오기
 	const cyberWave = anchor.workspace.CyberWave
 
@@ -33,13 +33,13 @@ describe('cpi', () => {
 			RegionInfoSchema,
 			new RegionInfo(),
 		  ).length + 8
-		newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
+		centralRegionAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 			serverWalletAccount.publicKey,
 			"CENTRAL_REGION1",
 			cyberWave.programId
 		)
-		const newDataAccount = await cyberWave.provider.connection.getAccountInfo(newDataAccountPubkey)
-		if (!newDataAccount) {
+		const centralRegionAccount = await cyberWave.provider.connection.getAccountInfo(centralRegionAccountPubkey)
+		if (!centralRegionAccount) {
 			const lamports = await provider.connection.getMinimumBalanceForRentExemption(SIZE)
 			let prevLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
 			console.log(prevLamports / 1000000000)
@@ -48,7 +48,7 @@ describe('cpi', () => {
 			const tx = await cyberWave.rpc.initializeRegionData(
 				{
 				accounts: {
-					myAccount: newDataAccountPubkey,
+					myAccount: centralRegionAccountPubkey,
 					user: serverWalletAccount.publicKey,
 					systemProgram: anchor.web3.SystemProgram.programId,
 				},
@@ -57,7 +57,7 @@ describe('cpi', () => {
 						fromPubkey: serverWalletAccount.publicKey,
 						basePubkey: serverWalletAccount.publicKey,
 						seed: "CENTRAL_REGION1",
-						newAccountPubkey: newDataAccountPubkey,
+						newAccountPubkey: centralRegionAccountPubkey,
 						lamports,
 						space: SIZE,
 						programId: cyberWave.programId,
@@ -74,11 +74,11 @@ describe('cpi', () => {
 			Utils.makeId(8),
 			{
 			accounts: {
-				centralRegionAccount: newDataAccountPubkey,
+				centralRegionAccount: centralRegionAccountPubkey,
 			},
 			signers: [],
 		})
-		const result = await cyberWave.account.regionInfo.fetch(newDataAccountPubkey)
+		const result = await cyberWave.account.regionInfo.fetch(centralRegionAccountPubkey)
 		console.log(result)
 	})
 

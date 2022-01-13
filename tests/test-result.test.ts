@@ -1,6 +1,7 @@
 import * as anchor from '@project-serum/anchor'
 import * as borsh from 'borsh'
 import { ProgramAccountInfo, ProgramAccountInfoSchema, RegionInfo, RegionInfoSchema } from './borsh.classes'
+import { Utils } from './utils/utils'
 
 jest.setTimeout(30000000)
 describe('cpi', () => {
@@ -8,7 +9,8 @@ describe('cpi', () => {
 	const provider = anchor.Provider.local("https://api.devnet.solana.com")
 	console.log(provider.wallet.publicKey.toBase58())
 	anchor.setProvider(provider)
-	let newDataAccountPubkey: anchor.web3.PublicKey
+	let centralRegionAccountPubkey: anchor.web3.PublicKey
+	let centralRegionResultAccountPubkey: anchor.web3.PublicKey
 	// DAO 프로그램, register 프로그램 가져오기
 	const cyberWave = anchor.workspace.CyberWave
 
@@ -25,17 +27,17 @@ describe('cpi', () => {
 		const accounts = ts.map((elem: {publicKey: any, account: Object}) => (elem.account))
 		console.log(accounts)
 		const res = accounts.reduce((acc: any, cur: any) => {
-			if (cur.region === "REGION_1") {
-				acc.region_1 += cur.power
+			if (cur.region === "REGION_01") {
+				acc.region_1 += cur.levelPower * cur.powerMagnified / 10000
 			}
-			if (cur.region === "REGION_2") {
-				acc.region_2 += cur.power
+			if (cur.region === "REGION_02") {
+				acc.region_2 += cur.levelPower * cur.powerMagnified / 10000
 			}
-			if (cur.region === "REGION_3") {
-				acc.region_3 += cur.power
+			if (cur.region === "REGION_03") {
+				acc.region_3 += cur.levelPower * cur.powerMagnified / 10000
 			}
-			if (cur.region === "REGION_4") {
-				acc.region_4 += cur.power
+			if (cur.region === "REGION_04") {
+				acc.region_4 += cur.levelPower * cur.powerMagnified / 10000
 			}
 			return acc
 		}, { region_1: 0, region_2: 0, region_3: 0, region_4: 0 })
@@ -43,55 +45,60 @@ describe('cpi', () => {
 			RegionInfoSchema,
 			new RegionInfo(),
 		  ).length + 8
-		newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
+		centralRegionAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 			serverWalletAccount.publicKey,
 			"CENTRAL_REGION1",
 			cyberWave.programId
 		)
-		const newDataAccount = await cyberWave.provider.connection.getAccountInfo(newDataAccountPubkey)
-		if (!newDataAccount) {
-			const lamports = await provider.connection.getMinimumBalanceForRentExemption(SIZE)
-			let prevLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
-			console.log(prevLamports / 1000000000)
-
-			// 트랜잭션
-			const tx = await cyberWave.rpc.initialize(
+		centralRegionResultAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
+			serverWalletAccount.publicKey,
+			"CENTRAL_REGION_RESULT",
+			cyberWave.programId
+		)
+		const lamports = await provider.connection.getMinimumBalanceForRentExemption(SIZE)
+		let prevLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
+		console.log(prevLamports / 1000000000)
+		const centralRegionResultAccount = await cyberWave.provider.connection.getAccountInfo(centralRegionResultAccountPubkey)
+		// 트랜잭션
+		if (!centralRegionResultAccount){
+			const tx = await cyberWave.rpc.initializeRegionResultData(
 				{
-				accounts: {
-					myAccount: newDataAccountPubkey,
-					user: provider.wallet.publicKey,
-					systemProgram: anchor.web3.SystemProgram.programId,
-				},
-				instructions: [
-					anchor.web3.SystemProgram.createAccountWithSeed({
-						fromPubkey: serverWalletAccount.publicKey,
-						basePubkey: serverWalletAccount.publicKey,
-						seed: "CENTRAL_REGION1",
-						newAccountPubkey: newDataAccountPubkey,
-						lamports,
-						space: SIZE,
-						programId: cyberWave.programId,
-					}),
-				],
-				signers: [serverWalletAccount],
-			})
+					accounts: {
+						myAccount: centralRegionResultAccountPubkey,
+						user: serverWalletAccount.publicKey,
+						systemProgram: anchor.web3.SystemProgram.programId,
+					},
+					instructions: [
+						anchor.web3.SystemProgram.createAccountWithSeed({
+							fromPubkey: serverWalletAccount.publicKey,
+							basePubkey: serverWalletAccount.publicKey,
+							seed: "CENTRAL_REGION_RESULT",
+							newAccountPubkey: centralRegionResultAccountPubkey,
+							lamports,
+							space: SIZE,
+							programId: cyberWave.programId,
+						}),
+					],
+					signers: [serverWalletAccount],
+				})
 		}
-		await cyberWave.rpc.region_result_calculate(
-			new anchor.BN(makeId(8)),
-			new anchor.BN(makeId(8)),
-			new anchor.BN(makeId(8)),
-			new anchor.BN(makeId(8)),
+		await cyberWave.rpc.regionResultCalculate(
+			Utils.makeId(8),
+			Utils.makeId(8),
+			Utils.makeId(8),
+			Utils.makeId(8),
 			new anchor.BN(res.region_1),
 			new anchor.BN(res.region_2),
 			new anchor.BN(res.region_3),
 			new anchor.BN(res.region_4),
 			{
 			accounts: {
-				centralRegionAccount: newDataAccountPubkey,
+				centralRegionAccount: centralRegionAccountPubkey,
+				centralRegionResultAccount: centralRegionResultAccountPubkey,
 			},
 			signers: [],
 		})
-		const result = await cyberWave.account.regionInfo.fetch(newDataAccountPubkey)
+		const result = await cyberWave.account.regionInfo.fetch(centralRegionAccountPubkey)
 		console.log(result)
 	})
 
