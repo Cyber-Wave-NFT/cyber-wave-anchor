@@ -14,13 +14,10 @@ describe('cpi', () => {
 
 	// 로컬 월렛 키페어 가져오기
 	const serverMainKey = Buffer.from([27,81,124,213,249,242,152,45,212,167,200,161,9,96,58,203,232,4,201,30,99,191,222,174,66,178,120,40,80,181,162,2,123,181,112,155,206,105,144,205,15,98,43,19,29,175,201,37,106,60,94,158,35,195,120,224,95,239,53,54,67,86,118,185])
-	const clientKey = Buffer.from([6,47,179,252,50,159,110,185,226,7,125,211,8,220,207,220,93,30,98,221,88,235,0,62,38,247,67,47,171,86,243,228,234,167,128,167,139,174,181,164,94,129,41,59,157,64,164,48,61,60,26,133,57,176,25,73,112,74,136,40,112,115,174,238])
 
 	// 클라이언트 월렛 어카운트
-	const clientWalletAccount = anchor.web3.Keypair.fromSecretKey(clientKey)
 	const serverWalletAccount = anchor.web3.Keypair.fromSecretKey(serverMainKey)
 	
-	console.log(clientWalletAccount.publicKey.toBase58())
 	console.log(serverWalletAccount.publicKey.toBase58())
 
 	it('test rns', async () => {
