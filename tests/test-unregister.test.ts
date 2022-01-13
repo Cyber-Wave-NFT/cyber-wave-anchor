@@ -37,13 +37,13 @@ describe('cpi', () => {
     it('Check data account', async () => {
         //check data account, before (initialize, register)
         const senderTokenAccount = await mint.getOrCreateAssociatedAccountInfo(
-            clientWalletAccount.publicKey
+            serverWalletAccount.publicKey
         )
         const associatedReceiverTokenAddr = await Token.getAssociatedTokenAddress(
             mint.associatedProgramId,
             mint.programId,
             mint.publicKey,
-            serverWalletAccount.publicKey
+            clientWalletAccount.publicKey
         )
 
         newDataAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
@@ -52,72 +52,67 @@ describe('cpi', () => {
             cyberWave.programId
         )
         
-        const newDataAccount = await cyberWave.provider.connection.getAccountInfo(newDataAccountPubkey)
+        try {
+            console.log("is it deposit?")
+            console.log(newDataAccountPubkey.toBase58())
 
-        // initialize, Check and create Dao Data Account
-        if (newDataAccount !== null) {
-            try {
-                console.log("is it deposit?")
-                console.log(newDataAccountPubkey.toBase58())
+            // TODO: nft owner 확인
+            const isDeposit = false
+            // const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 
-                // TODO: nft owner 확인
-                const isDeposit = false
-                // const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
+            // NFT owner를 바꾸는 식으로 구현한 다음
+            // NFT의 onwer를 확인하여 등록여부를 확인하는거로 바뀌어야함
+            // if (isDeposit && dataAccount['registeredAt'] !== 0) {
+            //  console.log("You are trying to register but Already registered")
+            //  return
+            // } else if (!isDeposit && dataAccount['registeredAt'] === 0) {
+            //  console.log("You are trying to unregister but isn't Registered.")
+            //  return
+            // }
 
-                // NFT owner를 바꾸는 식으로 구현한 다음
-                // NFT의 onwer를 확인하여 등록여부를 확인하는거로 바뀌어야함
-                // if (isDeposit && dataAccount['registeredAt'] !== 0) {
-                //  console.log("You are trying to register but Already registered")
-                //  return
-                // } else if (!isDeposit && dataAccount['registeredAt'] === 0) {
-                //  console.log("You are trying to unregister but isn't Registered.")
-                //  return
-                // }
+            if (!isDeposit) {
+                const receiver = clientWalletAccount
+                const sender = serverWalletAccount
 
-                if (!isDeposit) {
-                    const receiver = clientWalletAccount
-                    const sender = serverWalletAccount
+                // 데이터 사이즈에 맞는 최소 rent비 무시 적재량 계산
+                let prevLamports = await provider.connection.getBalance(clientWalletAccount.publicKey)
+                console.log(prevLamports / 1000000000)
+                const prevResult = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
+                console.log(prevResult)
 
-                    // 데이터 사이즈에 맞는 최소 rent비 무시 적재량 계산
-                    let prevLamports = await provider.connection.getBalance(clientWalletAccount.publicKey)
-                    console.log(prevLamports / 1000000000)
-                    const prevResult = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
-                    console.log(prevResult)
+                const instructions: anchor.web3.TransactionInstruction[] = [
+                    Token.createTransferInstruction(
+                        TOKEN_PROGRAM_ID,
+                        senderTokenAccount.address,
+                        associatedReceiverTokenAddr,
+                        sender.publicKey,
+                        [sender],
+                        1
+                    )
+                ]
 
-                    const instructions: anchor.web3.TransactionInstruction[] = [
-                        Token.createTransferInstruction(
-                            TOKEN_PROGRAM_ID,
-                            senderTokenAccount.address,
-                            associatedReceiverTokenAddr,
-                            sender.publicKey,
-                            [sender],
-                            1
-                        )
-                    ]
+                // 트랜잭션 실제 발생
+                const tx = await cyberWave.rpc.unregister({
+                    accounts: {
+                        myAccount: newDataAccountPubkey,
+                        user: clientWalletAccount.publicKey,
+                    },
+                    instructions: instructions,
+                    signers: [clientWalletAccount, serverWalletAccount],
+                })
 
-                    // 트랜잭션 실제 발생
-                    const tx = await cyberWave.rpc.unregister({
-                        accounts: {
-                            myAccount: newDataAccountPubkey,
-                            user: clientWalletAccount.publicKey,
-                        },
-                        instructions: instructions,
-                        signers: [clientWalletAccount, serverWalletAccount],
-                    })
-
-                    console.log('Your transaction signature', tx)
-                    let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
-                    console.log(postLamports / 1000000000)
-                    const postResult = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
-                    console.log(postResult)
-                }
-                const result = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
-                console.log(result)
-                // expect(result['level']).toBe(1)
-            } catch (err) {
-                console.log(err)
-                fail(err)
+                console.log('Your transaction signature', tx)
+                let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
+                console.log(postLamports / 1000000000)
+                const postResult = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
+                console.log(postResult)
             }
+            const result = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
+            console.log(result)
+            // expect(result['level']).toBe(1)
+        } catch (err) {
+            console.log(err)
+            fail(err)
         }
     })
 })
