@@ -83,8 +83,11 @@ pub mod cyber_wave {
 	
 	pub fn move_region(ctx: Context<Register>, data: String) -> ProgramResult {
 		let account_data = &mut ctx.accounts.my_account;
+		let current_time = Clock::get().unwrap().unix_timestamp as u32;
 		// unregister시 move region 불가
-		if account_data.region != "000000000".to_string() {
+		// cannot move at stun
+		if account_data.region != "000000000".to_string() &&
+					current_time > account_data.stun_end_at {
 			if account_data.region == "BASE_MENT" {
 				logic::calculate_level_and_exp(account_data);
 			}
