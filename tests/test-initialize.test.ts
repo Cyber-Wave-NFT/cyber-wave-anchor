@@ -172,6 +172,7 @@ describe('cpi', () => {
             let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
             console.log(postLamports / 1000000000)
 
+            // TODO: 모듈화 하기
             // after initialize update allies' power (Aries)
             const ts = await cyberWave.account.programAccountInfo.all()
             const accounts = ts
@@ -179,28 +180,14 @@ describe('cpi', () => {
             let totalAries = accounts.reduce((acc: any, account: any) => 
                 acc + (account.account.characterType === "ARIES0" ? 1 : 0)
             , 0)
-            if ((attributes["skin type"]?.split(" ").pop()?.toUpperCase() ?? "") === "ARIES") {
-                // w/o self aries (calculate in updating all aries power)
-                totalAries = totalAries - 1
-            }
 
-            // update initialized data account power
-            await cyberWave.rpc.updatePower(
-                new anchor.BN(totalAries),
-                {
-                accounts: {
-                    updateAccount: newDataAccountPubkey,
-                },
-                signers: [serverWalletAccount],
-            })
-            const updateResult = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
-            console.log(updateResult)
             // update all aries power in wallet
+            // when aries update all
             if ((attributes["skin type"]?.split(" ").pop()?.toUpperCase() ?? "") === "ARIES") {
                 await accounts.forEach(async (elem: { publicKey: any, account: any }) => {
                     const allyDataAccountPubkey = elem.publicKey
                     await cyberWave.rpc.updatePower(
-                        1,
+                        totalAries,
                         {
                             accounts: {
                                 updateAccount: allyDataAccountPubkey,
@@ -209,7 +196,18 @@ describe('cpi', () => {
                         }
                     )
                 })
+            } else { // if not aries update initialized data account only
+                await cyberWave.rpc.updatePower(
+                    totalAries,
+                    {
+                        accounts: {
+                            updateAccount: newDataAccountPubkey,
+                        },
+                        signers: [serverWalletAccount],
+                    }
+                )
             }
+            const allAccount = await cyberWave.account.programAccountInfo.all()
 
             console.log("Initialization finish")
         } else {

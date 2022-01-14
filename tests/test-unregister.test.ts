@@ -106,6 +106,29 @@ describe('cpi', () => {
             const result = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
             console.log(result)
             // expect(result['level']).toBe(1)
+
+            // update power when aries unregister
+            if (result.character_type === "ARIES0") {
+                const ts = await cyberWave.account.programAccountInfo.all()
+                const accounts = ts
+                    .filter((elem: { publicKey: any, account: any }) => (elem.account.accountPubkey === clientWalletAccount.publicKey.toBase58()))
+                let totalAries = accounts.reduce((acc: any, account: any) =>
+                    acc + (account.account.characterType === "ARIES0" ? 1 : 0)
+                    , 0)
+                await accounts.forEach(async (elem: { publicKey: any, account: any }) => {
+                    const allyDataAccountPubkey = elem.publicKey
+                    await cyberWave.rpc.updatePower(
+                        totalAries,
+                        {
+                            accounts: {
+                                updateAccount: allyDataAccountPubkey,
+                            },
+                            signers: [serverWalletAccount],
+                        }
+                    )
+                })
+            }
+
         } catch (err) {
             console.log(err)
             fail(err)

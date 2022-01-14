@@ -112,6 +112,43 @@ describe('cpi', () => {
                 const result = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
                 console.log(result)
                 // expect(result['level']).toBe(1)
+
+                // after initialize update allies' power (Aries)
+                const ts = await cyberWave.account.programAccountInfo.all()
+                const accounts = ts
+                    .filter((elem: { publicKey: any, account: any }) => (elem.account.accountPubkey === clientWalletAccount.publicKey.toBase58()))
+                let totalAries = accounts.reduce((acc: any, account: any) =>
+                    acc + (account.account.characterType === "ARIES0" ? 1 : 0)
+                    , 0)
+
+                // update all aries power in same wallet
+                // when aries update all
+                if (result.character_type === "ARIES0") {
+                    await accounts.forEach(async (elem: { publicKey: any, account: any }) => {
+                        const allyDataAccountPubkey = elem.publicKey
+                        await cyberWave.rpc.updatePower(
+                            totalAries,
+                            {
+                                accounts: {
+                                    updateAccount: allyDataAccountPubkey,
+                                },
+                                signers: [serverWalletAccount],
+                            }
+                        )
+                    })
+                } else { // if not aries update initialized data account only
+                    await cyberWave.rpc.updatePower(
+                        totalAries,
+                        {
+                            accounts: {
+                                updateAccount: newDataAccountPubkey,
+                            },
+                            signers: [serverWalletAccount],
+                        }
+                    )
+                }
+                const allAccount = await cyberWave.account.programAccountInfo.all()
+
             } catch (err) {
                 console.log(err)
                 fail(err)
