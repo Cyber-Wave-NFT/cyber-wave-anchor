@@ -152,7 +152,7 @@ describe('cpi', () => {
                 attributes["tattoo"] ?? "",
                 attributes["clothes"] ?? "",
                 attributes["neckwear"] ?? "",
-                (attributes["skin type"]?.split(" ").pop() ?? "").padEnd(6, '0'),
+                (attributes["skin type"]?.split(" ").pop()?.toUpperCase() ?? "").padEnd(6, '0'),
                 {   
                     accounts: {
                         myAccount: newDataAccountPubkey,
@@ -171,6 +171,47 @@ describe('cpi', () => {
 
             let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
             console.log(postLamports / 1000000000)
+
+            // after initialize update allies' power (Aries)
+            const ts = await cyberWave.account.programAccountInfo.all()
+            const accounts = ts
+                .filter((elem: { publicKey: any, account: any }) => (elem.account.accountPubkey === clientWalletAccount.publicKey.toBase58()))
+            let totalAries = accounts.reduce((acc: any, account: any) => 
+                acc + (account.account.characterType === "ARIES0" ? 1 : 0)
+            , 0)
+            if ((attributes["skin type"]?.split(" ").pop()?.toUpperCase() ?? "") === "ARIES") {
+                // w/o self aries (calculate in updating all aries power)
+                totalAries = totalAries - 1
+            }
+
+            // update initialized data account power
+            await cyberWave.rpc.updatePower(
+                new anchor.BN(totalAries),
+                {
+                accounts: {
+                    updateAccount: newDataAccountPubkey,
+                },
+                signers: [serverWalletAccount],
+            })
+            const updateResult = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
+            console.log(updateResult)
+            // update all aries power in wallet
+            if ((attributes["skin type"]?.split(" ").pop()?.toUpperCase() ?? "") === "ARIES") {
+                await accounts.forEach(async (elem: { publicKey: any, account: any }) => {
+                    const allyDataAccountPubkey = elem.publicKey
+                    await cyberWave.rpc.updatePower(
+                        1,
+                        {
+                            accounts: {
+                                updateAccount: allyDataAccountPubkey,
+                            },
+                            signers: [serverWalletAccount],
+                        }
+                    )
+                })
+            }
+
+            console.log("Initialization finish")
         } else {
             console.log('No initialization')
         }

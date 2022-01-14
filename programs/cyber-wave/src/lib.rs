@@ -72,9 +72,6 @@ pub mod cyber_wave {
 		account_data.boost = 0;
 		account_data.stun_end_at = 0;
 		account_data.character_type = character_type;
-		if (account_data.character_type == String::from("ARIES0")) {
-			account_data.power_magnified = ((account_data.power_magnified as f32) * 1.01) as u32;
-		}
 		account_data.ability_able_at = 0;
 		account_data.region = "BASE_MENT".to_string();
 
@@ -138,6 +135,12 @@ pub mod cyber_wave {
 
 		// cannot exceed MAX Exp
 		account_data.exp = std::cmp::min(account_data.exp, EXP_LIMIT);
+		Ok(())
+	}
+
+	pub fn update_power(ctx: Context<UpdatePower>, num_aries: u32) -> ProgramResult {
+		let account_data = &mut ctx.accounts.update_account;
+		account_data.power_magnified = (account_data.power_magnified as f32 * (1.01_f32).powf(num_aries as f32)) as u32;
 		Ok(())
 	}
 
@@ -277,6 +280,12 @@ pub struct Register<'info> {
 	pub my_account: Account<'info, ProgramAccountInfo>,
 	#[account(mut)]
 	pub user: Signer<'info>
+}
+
+#[derive(Accounts)]
+pub struct UpdatePower<'info> {
+	#[account(mut)]
+	pub update_account: Account<'info, ProgramAccountInfo>,
 }
 
 #[account]
