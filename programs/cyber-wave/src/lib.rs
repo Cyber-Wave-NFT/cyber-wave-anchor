@@ -227,6 +227,10 @@ pub mod cyber_wave {
 		let update_account = &mut ctx.accounts.update_account;
 		let region_account = &ctx.accounts.region_result_account;
 		let current_time = Clock::get().unwrap().unix_timestamp as u32;
+		// move region at PM 7:** -> basement time PM 8:00 
+		// calculate next hour
+		let basement_time: u32 = update_account.last_calculated_at + 3600 - update_account.last_calculated_at % 3600;
+		// check game result
 		let mut is_win = false;
 		if update_account.region == "BASE_MENT" {
 			return Err(Errors::NotInRegion.into());
@@ -244,15 +248,25 @@ pub mod cyber_wave {
 			let is_win = region_account.region_4_is_win;
 		}
 		update_account.region = "BASE_MENT".to_string();
-		if !is_win {
-			if update_account.character_type == "VISION" {
-				let random_number = logic::calculate_random(random);
-				if random_number < 30 {
-					return Ok(());
-				}
+		// vision class can survive 30%
+		if update_account.character_type == "VISION" {
+			let random_number = logic::calculate_random(random);
+			if random_number < 30 {
+				is_win = true;
 			}
-			update_account.stun_end_at = current_time + 86400;
 		}
+		if !is_win {
+			update_account.stun_end_at = basement_time + 86400;
+			// if check result at tomorrow or after
+			if update_account.stun_end_at < current_time {
+				update_account.last_calculated_at = update_account.stun_end_at;
+				logic::calculate_level_and_exp(update_account);
+			}
+		} else {
+			update_account.last_calculated_at = basement_time;
+			logic::calculate_level_and_exp(update_account);
+		}
+		update_account.last_calculated_at = current_time;
 		Ok(())
 	}
 
