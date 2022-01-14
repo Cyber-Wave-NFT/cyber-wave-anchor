@@ -47,7 +47,7 @@ describe('cpi', () => {
             SEED,
             cyberWave.programId
         )
-        
+      
         const newDataAccount = await cyberWave.provider.connection.getAccountInfo(newDataAccountPubkey)
 
         // initialize, Check and create Dao Data Account
@@ -56,9 +56,15 @@ describe('cpi', () => {
                 console.log("is it deposit?")
                 console.log(newDataAccountPubkey.toBase58())
 
-                // TODO: nft owner 확인
-                const isDeposit = false
-                // const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
+                // nft owner 확인
+                const res = await provider.connection.getTokenLargestAccounts(mintPubkey)
+                const ownerTokenAccount = res.value.find((x) => x.amount === "1") ?? ""
+                if (ownerTokenAccount) {
+                    const info = await mint.getAccountInfo(ownerTokenAccount.address)
+                    const ownerWalletAccount = info.owner.toBase58()
+                }
+                // TODO else 일때는..?
+                const isDeposit = (ownerTokenAccount === serverWalletAccount.publicKey.toBase58()) ? false : true
 
                 // NFT owner를 바꾸는 식으로 구현한 다음
                 // NFT의 onwer를 확인하여 등록여부를 확인하는거로 바뀌어야함
