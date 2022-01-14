@@ -57,7 +57,7 @@ describe('cpi', () => {
                 console.log(newDataAccountPubkey.toBase58())
 
                 // TODO: nft owner 확인
-                const isDeposit = false
+                const isDeposit = true
                 // const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 
                 // NFT owner를 바꾸는 식으로 구현한 다음
