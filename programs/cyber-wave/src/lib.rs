@@ -81,12 +81,13 @@ pub mod cyber_wave {
 		Ok(())
 	}
 	
-	// 여기랑 unregister에서 되게, String=fixed size string, &str= pointer 미정..
-	// unregister시 move region 안되게
 	pub fn move_region(ctx: Context<Register>, data: String) -> ProgramResult {
 		let account_data = &mut ctx.accounts.my_account;
+		// unregister시 move region 불가
 		if account_data.region != "000000000".to_string() {
-			logic::calculate_level_and_exp(account_data);
+			if account_data.region == "BASE_MENT" {
+				logic::calculate_level_and_exp(account_data);
+			}
 			account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;
 			if data == "BASE_MENT".to_string() { // region이름으로 가져오는걸로 바꾸고, region 이름은 9length string, basement + region 4
 				account_data.region = "BASE_MENT".to_string()
