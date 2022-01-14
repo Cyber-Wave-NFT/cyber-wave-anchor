@@ -123,7 +123,7 @@ describe('cpi', () => {
 
                 // update all aries power in same wallet
                 // when aries update all
-                if (result.character_type === "ARIES0") {
+                if (result.characterType === "ARIES0") {
                     await accounts.forEach(async (elem: { publicKey: any, account: any }) => {
                         const allyDataAccountPubkey = elem.publicKey
                         await cyberWave.rpc.updatePower(

@@ -108,7 +108,7 @@ describe('cpi', () => {
             // expect(result['level']).toBe(1)
 
             // update power when aries unregister
-            if (result.character_type === "ARIES0") {
+            if (result.characterType === "ARIES0") {
                 const ts = await cyberWave.account.programAccountInfo.all()
                 const accounts = ts
                     .filter((elem: { publicKey: any, account: any }) => (elem.account.accountPubkey === clientWalletAccount.publicKey.toBase58()))
