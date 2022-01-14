@@ -20,7 +20,7 @@ pub mod cyber_wave {
 		msg!("user pubkey: {:?}", &(&user.key).to_string().clone());
 		account_data.level = 1;
 		account_data.exp = 0;
-		account_data.power_magnified = 10000; // original power magnified * 10000
+		account_data.item_power_magnified = 10000; // original power magnified * 10000
 		// TODO: 정확히 옷 이름들 어떻게 되는지 uncommon etc..
 		let FACEWEAR: [Box<[&str]>; 4] = [Box::new(["Cyber Scouter", "Heart Sunglasses", "In Ear Microphone", "Bitconin Football Mask"]), 
 							Box::new(["Cyber Goggle", "Diamond Sunglasses", "Diamond Lace Veil", "Neon Graffiti Mask"]),
@@ -65,6 +65,7 @@ pub mod cyber_wave {
 		magnify(clothes, CLOTHES, account_data);
 		magnify(neckwear, NECKWEAR, account_data);
 
+		account_data.power_magnified = account_data.item_power_magnified;
 		account_data.level_power = 1000;
 		account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;
 		account_data.account_pubkey = (&user.key).to_string().clone();
@@ -293,6 +294,7 @@ pub struct ProgramAccountInfo {
 	pub level: u32,
 	pub exp: u32,
 	pub power_magnified: u32,
+	pub item_power_magnified: u32,
 	pub level_power: u32,	
 	pub last_calculated_at: u32,
 	pub account_pubkey: String,

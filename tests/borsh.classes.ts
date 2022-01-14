@@ -2,6 +2,7 @@ export class ProgramAccountInfo {
 	level = 0
 	exp = 0
 	power_magnified = 0
+	item_power_magnified = 0
 	level_power = 0 // power by level
 	last_calculated_at = 0
 	account_pubkey: String = "00000000000000000000000000000000000000000000"
@@ -15,6 +16,7 @@ export class ProgramAccountInfo {
 		level: number, 
 		exp: number,
 		power_magnified: number,
+		item_power_magnified: number,
 		level_power: number,
 		last_calculated_at: number,
 		account_pubkey: String,
@@ -29,6 +31,7 @@ export class ProgramAccountInfo {
 			this.level = fields.level
 			this.exp = fields.exp
 			this.power_magnified = fields.power_magnified
+			this.item_power_magnified = fields.item_power_magnified
 			this.level_power = fields.level_power
 			this.last_calculated_at = fields.last_calculated_at
 			this.account_pubkey = fields.account_pubkey
@@ -50,6 +53,7 @@ export const ProgramAccountInfoSchema = new Map([
 		['level', 'u32'],
 		['exp', 'u32'],
 		['power_magnified', 'u32'],
+		['item_power_magnified', 'u32'],
 		['level_power', 'u32'],
 		['last_calculated_at', 'u32'],
 		['account_pubkey', 'String'],
