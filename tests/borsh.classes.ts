@@ -12,6 +12,7 @@ export class ProgramAccountInfo {
 	character_type: String = "000000"
 	ability_able_at = 0
 	region: String = "000000000"
+	cyber_token_ammount = 0
 	constructor(fields: {
 		level: number, 
 		exp: number,
@@ -25,7 +26,8 @@ export class ProgramAccountInfo {
 		stun_end_at: number,
 		character_type: String
 		ability_able_at: number,
-		region: String
+		region: String,
+		cyber_token_ammount: number
 	} | undefined = undefined) {
 		if (fields) {
 			this.level = fields.level
@@ -41,6 +43,7 @@ export class ProgramAccountInfo {
 			this.character_type = fields.character_type
 			this.ability_able_at = fields.ability_able_at
 			this.region = fields.region
+			this.cyber_token_ammount = fields.cyber_token_ammount
 		}
 	}
 }
@@ -62,7 +65,8 @@ export const ProgramAccountInfoSchema = new Map([
 		['stun_end_at', 'u32'],
 		['character_type', 'String'],
 		['ability_able_at', 'u32'],
-		['region', 'String']
+		['region', 'String'],
+		['cyber_token_ammount', 'u32']
 	]}],
 ])
 

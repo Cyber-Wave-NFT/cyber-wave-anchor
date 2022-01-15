@@ -75,6 +75,7 @@ pub mod cyber_wave {
 		account_data.character_type = character_type;
 		account_data.ability_able_at = 0;
 		account_data.region = "BASE_MENT".to_string();
+		account_data.cyber_token_ammount = 0;
 
 		Ok(())
 	}
@@ -119,6 +120,7 @@ pub mod cyber_wave {
 		account_data.account_pubkey = ctx.accounts.user.to_account_info().key.to_string();
 		account_data.level = 1 + ((account_data.exp / 50) as f64).sqrt().round() as u32; 	// total_exp = 50 * level^2
 		account_data.level_power = 1.01_f64.powf((account_data.level - 1) as f64) as u32 * 1000; 	// 1% power up per level up 1.01^(level - 1) * 1000(default power)
+		account_data.power_magnified = account_data.item_power_magnified;
 		account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;		// register time
 		account_data.region = "BASE_MENT".to_string();										// default region
 
@@ -136,6 +138,7 @@ pub mod cyber_wave {
 		}
 		// unregister logic
 		account_data.region = "000000000".to_string();	// region clear
+		account_data.power_magnified = account_data.item_power_magnified;
 		account_data.last_calculated_at = 0;			// registered at time clear
 
 		// cannot exceed MAX Exp
@@ -220,13 +223,13 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
-	pub fn calculate_result_from_account(ctx: Context<CalculateResult>, random: String) -> ProgramResult {
+	pub fn calculate_result_from_account(ctx: Context<CalculateResult>, token_amount: u32, random: String) -> ProgramResult {
 		let update_account = &mut ctx.accounts.update_account;
 		let region_account = &ctx.accounts.region_result_account;
 		let current_time = Clock::get().unwrap().unix_timestamp as u32;
 		// move region at PM 7:** -> basement time PM 8:00 
 		// calculate next hour
-		let basement_time: u32 = update_account.last_calculated_at + 3600 - update_account.last_calculated_at % 3600;
+		let basement_time: u32 = update_account.last_calculated_at + 86400 - (update_account.last_calculated_at - 3600) % 86400;
 		// check game result
 		let mut is_win = false;
 		if update_account.region == "BASE_MENT" {
@@ -262,6 +265,7 @@ pub mod cyber_wave {
 		} else {
 			update_account.last_calculated_at = basement_time;
 			logic::calculate_level_and_exp(update_account);
+			update_account.cyber_token_ammount += token_amount;
 		}
 		update_account.last_calculated_at = current_time;
 		Ok(())
@@ -311,7 +315,8 @@ pub struct ProgramAccountInfo {
 	pub stun_end_at: u32,
 	pub character_type: String,
 	pub ability_able_at: u32,
-	pub region: String
+	pub region: String,
+	pub cyber_token_ammount: u32
 }
 
 #[derive(Accounts)]
