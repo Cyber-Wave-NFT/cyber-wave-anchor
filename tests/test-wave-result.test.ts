@@ -73,7 +73,6 @@ describe('wave-result', () => {
 					transferTokenAmount
 				)
 			]
-			// TODO: 8시부터 계산~
 			const tx = await cyberWave.rpc.calculateResultFromAccount(
 				new anchor.BN(transferTokenAmount),
 				Utils.makeId(8),
@@ -86,6 +85,20 @@ describe('wave-result', () => {
 				signers: [serverWalletAccount],
 			})
 		})
+		const totalAries = ts.reduce((acc: any, elem: { publicKey: any, account: any }) =>
+			acc + ((elem.account.characterType === "ARIES0" && elem.account.isStuned == 0) ? 1 : 0)
+			, 0)
+		await accounts.forEach(async (account: any) => {
+			const tx = await cyberWave.rpc.calculateExpLevel(
+				new anchor.BN(totalAries),
+				{
+					accounts: {
+						updateAccount: account.pubKey,
+						regionResultAccount: centralRegionResultAccountPubkey
+					},
+					signers: [serverWalletAccount],
+				})
+		}
 	})
 
 })

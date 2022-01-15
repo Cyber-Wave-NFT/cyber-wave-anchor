@@ -4,10 +4,10 @@ use solana_program::clock::Clock;
 use crate::ProgramAccountInfo;
 use sha256::digest;
 
-pub fn calculate_level_and_exp<'info>(account_data: &mut Account<'info, ProgramAccountInfo>) {
+pub fn calculate_level_and_exp<'info>(account_data: &mut Account<'info, ProgramAccountInfo>, current_time: u32) {
 	// exp up occurs power up
 	// so calculate level, exp, power when has to level up
-	let mut time_elapsed = (Clock::get().unwrap().unix_timestamp as u32 - account_data.last_calculated_at) / 60;
+	let mut time_elapsed = (current_time - account_data.last_calculated_at) / 60;
 	while time_elapsed > 0 {
 		// next level total exp - current exp
 		// 50 * (current level)^2 - current exp
@@ -34,10 +34,10 @@ pub fn calculate_result(zombie_power: u32, characters_power: u32, random_seed: S
 	return winning_rate > (random_number as f64);
 }
 
-pub fn calculate_random(random_seed: String) -> u32 {
+pub fn calculate_random(base_seed: String) -> u32 {
 	// generate random number 0~100
 	let val = digest(random_seed);
-	let front_seed = &val[0..2];
+	let front_seed = &val[2..4];
 	let result = i64::from_str_radix(front_seed, 16).unwrap();
 	return ((result as f32 / 256_f32) * 100_f32) as u32;
 }

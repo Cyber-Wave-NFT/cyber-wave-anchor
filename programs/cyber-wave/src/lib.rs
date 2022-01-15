@@ -72,9 +72,10 @@ pub mod cyber_wave {
 		account_data.weapon_pubkey = "00000000000000000000000000000000000000000000".to_string();
 		account_data.boost = 0;
 		account_data.stun_end_at = 0;
+		account_data.is_stuned = 0;
 		account_data.character_type = character_type;
 		account_data.ability_able_at = 0;
-		account_data.region = "BASE_MENT".to_string();
+		account_data.region = "CYBERWAVE".to_string();
 		account_data.cyber_token_amount = 0;
 
 		Ok(())
@@ -87,12 +88,12 @@ pub mod cyber_wave {
 		// cannot move at stun
 		if account_data.region != "000000000".to_string() &&
 					current_time > account_data.stun_end_at {
-			if account_data.region == "BASE_MENT" {
-				logic::calculate_level_and_exp(account_data);
+			if account_data.region == "CYBERWAVE" {
+				logic::calculate_level_and_exp(account_data, current_time);
 			}
 			account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;
-			if data == "BASE_MENT".to_string() { // region이름으로 가져오는걸로 바꾸고, region 이름은 9length string, basement + region 4
-				account_data.region = "BASE_MENT".to_string()
+			if data == "CYBERWAVE".to_string() { // region이름으로 가져오는걸로 바꾸고, region 이름은 9length string, basement + region 4
+				account_data.region = "CYBERWAVE".to_string()
 			}
 			if data == "REGION_01".to_string() {
 				account_data.region = "REGION_01".to_string()
@@ -122,7 +123,7 @@ pub mod cyber_wave {
 		account_data.level_power = 1.01_f64.powf((account_data.level - 1) as f64) as u32 * 1000; 	// 1% power up per level up 1.01^(level - 1) * 1000(default power)
 		account_data.power_magnified = account_data.item_power_magnified;
 		account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;		// register time
-		account_data.region = "BASE_MENT".to_string();										// default region
+		account_data.region = "CYBERWAVE".to_string();										// default region
 
 		// 추가 필요 목록
 		// account pubKey
@@ -134,7 +135,8 @@ pub mod cyber_wave {
 		let account_data =  &mut ctx.accounts.my_account;
 
 		if account_data.region == "BASE_MENT" {
-			logic::calculate_level_and_exp(account_data);
+			let current_time = Clock::get().unwrap().unix_timestamp as u32;
+			logic::calculate_level_and_exp(account_data, current_time);
 		}
 		// unregister logic
 		account_data.region = "000000000".to_string();	// region clear
@@ -226,13 +228,11 @@ pub mod cyber_wave {
 	pub fn calculate_result_from_account(ctx: Context<CalculateResult>, token_amount: u32, random: String) -> ProgramResult {
 		let update_account = &mut ctx.accounts.update_account;
 		let region_account = &ctx.accounts.region_result_account;
-		let current_time = Clock::get().unwrap().unix_timestamp as u32;
-		// move region at PM 7:** -> basement time PM 8:00 
-		// calculate next hour
+		// calculate next 8pm in 24hours
 		let basement_time: u32 = update_account.last_calculated_at + 86400 - (update_account.last_calculated_at - 3600) % 86400;
 		// check game result
 		let mut is_win = false;
-		if update_account.region == "BASE_MENT" {
+		if update_account.region == "CYBERWAVE" {
 			return Err(Errors::NotInRegion.into());
 		}
 		if update_account.region == "REGION_01" {
@@ -247,7 +247,7 @@ pub mod cyber_wave {
 		if update_account.region == "REGION_04" {
 			let is_win = region_account.region_4_is_win;
 		}
-		update_account.region = "BASE_MENT".to_string();
+		update_account.region = "CYBERWAVE".to_string();
 		// vision class can survive 30%
 		if update_account.character_type == "VISION" {
 			let random_number = logic::calculate_random(random);
@@ -257,16 +257,43 @@ pub mod cyber_wave {
 		}
 		if !is_win {
 			update_account.stun_end_at = basement_time + 86400;
-			// if check result at tomorrow or after
-			if update_account.stun_end_at < current_time {
-				update_account.last_calculated_at = update_account.stun_end_at;
-				logic::calculate_level_and_exp(update_account);
-			}
+			update_account.is_stuned = 1;
 		} else {
-			update_account.last_calculated_at = basement_time;
-			logic::calculate_level_and_exp(update_account);
-			update_account.cyber_token_amount += token_amount;
+			let cyber_token_var = if update_account.character_type == "NOVA00" {1.2} else {1.};
+			update_account.cyber_token_amount += (token_amount as f32 * cyber_token_var) as u32;
 		}
+		Ok(())
+	}
+
+	pub fn calculate_exp_level(ctx: Context<CalculateExpLevel>, survived_aries: u32) -> ProgramResult {
+		let update_account = &mut ctx.accounts.update_account;
+		let current_time = Clock::get().unwrap().unix_timestamp as u32;
+		// calculate next 8pm in 24hours
+		let basement_time: u32 = update_account.last_calculated_at + 86400 - (update_account.last_calculated_at - 3600) % 86400;
+		// stuned
+		if update_account.is_stuned != 0{
+			update_account.last_calculated_at = update_account.stun_end_at;
+			logic::calculate_level_and_exp(update_account, current_time);
+
+			update_account.is_stuned = if update_account.stun_end_at < current_time {1} else {0};
+		// not stuned
+		} else {
+			let prev_power_magnified = update_account.power_magnified;
+			update_account.power_magnified = (update_account.item_power_magnified as f32 * (1.01_f32).powf(survived_aries as f32)) as u32;
+			update_account.last_calculated_at = basement_time;
+			let aries_stun_end_at = basement_time + 86400;
+			// check result at tomorrow or after
+			if aries_stun_end_at < current_time {
+				logic::calculate_level_and_exp(update_account, aries_stun_end_at);
+				update_account.power_magnified = prev_power_magnified;
+				update_account.last_calculated_at = aries_stun_end_at;
+				logic::calculate_level_and_exp(update_account, current_time);
+			// check in 24 hours
+			} else {
+				logic::calculate_level_and_exp(update_account, current_time);
+			}
+		}
+
 		update_account.last_calculated_at = current_time;
 		Ok(())
 	}
@@ -313,6 +340,7 @@ pub struct ProgramAccountInfo {
 	pub weapon_pubkey: String,
 	pub boost: u32,
 	pub stun_end_at: u32,
+	pub is_stuned: u32,
 	pub character_type: String,
 	pub ability_able_at: u32,
 	pub region: String,
@@ -410,6 +438,12 @@ pub struct CalculateResult<'info> {
 	#[account(mut)]
 	pub update_account: Account<'info, ProgramAccountInfo>,
 	pub region_result_account: Account<'info, RegionResultInfo>
+}
+
+#[derive(Accounts)]
+pub struct CalculateExpLevel<'info> {
+	#[account(mut)]
+	pub update_account: Account<'info, ProgramAccountInfo>,
 }
 
 #[error]
