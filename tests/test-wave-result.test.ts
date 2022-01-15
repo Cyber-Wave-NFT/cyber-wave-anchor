@@ -85,8 +85,9 @@ describe('wave-result', () => {
 				signers: [serverWalletAccount],
 			})
 		})
+		const currentTime = Date.now() / 1000;
 		const totalAries = ts.reduce((acc: any, elem: { publicKey: any, account: any }) =>
-			acc + ((elem.account.characterType === "ARIES0" && elem.account.isStuned == 0) ? 1 : 0)
+			acc + ((elem.account.characterType === "ARIES0" && elem.account.stunEndAt < currentTime) ? 1 : 0)
 			, 0)
 		await accounts.forEach(async (account: any) => {
 			const tx = await cyberWave.rpc.calculateExpLevel(

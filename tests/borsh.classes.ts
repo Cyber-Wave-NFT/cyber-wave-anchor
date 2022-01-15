@@ -9,7 +9,6 @@ export class ProgramAccountInfo {
 	weapon_pubkey: String = "00000000000000000000000000000000000000000000"
 	boost = 0
 	stun_end_at = 0
-	is_stuned = 0
 	character_type: String = "000000"
 	ability_able_at = 0
 	region: String = "000000000"
@@ -25,7 +24,6 @@ export class ProgramAccountInfo {
 		weapon_pubkey: String,
 		boost: number,
 		stun_end_at: number,
-		is_stuned: number,
 		character_type: String
 		ability_able_at: number,
 		region: String,
@@ -42,7 +40,6 @@ export class ProgramAccountInfo {
 			this.weapon_pubkey = fields.weapon_pubkey
 			this.boost = fields.boost
 			this.stun_end_at = fields.stun_end_at
-			this.is_stuned = fields.is_stuned
 			this.character_type = fields.character_type
 			this.ability_able_at = fields.ability_able_at
 			this.region = fields.region
@@ -66,7 +63,6 @@ export const ProgramAccountInfoSchema = new Map([
 		['weapon_pubkey', 'String'],
 		['boost', 'u32'],
 		['stun_end_at', 'u32'],
-		['is_stuned', 'u32'],
 		['character_type', 'String'],
 		['ability_able_at', 'u32'],
 		['region', 'String'],

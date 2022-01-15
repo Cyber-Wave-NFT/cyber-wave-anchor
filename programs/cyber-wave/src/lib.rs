@@ -72,7 +72,6 @@ pub mod cyber_wave {
 		account_data.weapon_pubkey = "00000000000000000000000000000000000000000000".to_string();
 		account_data.boost = 0;
 		account_data.stun_end_at = 0;
-		account_data.is_stuned = 0;
 		account_data.character_type = character_type;
 		account_data.ability_able_at = 0;
 		account_data.region = "CYBERWAVE".to_string();
@@ -257,7 +256,6 @@ pub mod cyber_wave {
 		}
 		if !is_win {
 			update_account.stun_end_at = basement_time + 86400;
-			update_account.is_stuned = 1;
 		} else {
 			let cyber_token_var = if update_account.character_type == "NOVA00" {1.2} else {1.};
 			update_account.cyber_token_amount += (token_amount as f32 * cyber_token_var) as u32;
@@ -271,11 +269,9 @@ pub mod cyber_wave {
 		// calculate next 8pm in 24hours
 		let basement_time: u32 = update_account.last_calculated_at + 86400 - (update_account.last_calculated_at - 3600) % 86400;
 		// stuned
-		if update_account.is_stuned != 0{
+		if update_account.stun_end_at > basement_time {
 			update_account.last_calculated_at = update_account.stun_end_at;
 			logic::calculate_level_and_exp(update_account, current_time);
-
-			update_account.is_stuned = if update_account.stun_end_at < current_time {1} else {0};
 		// not stuned
 		} else {
 			let prev_power_magnified = update_account.power_magnified;
