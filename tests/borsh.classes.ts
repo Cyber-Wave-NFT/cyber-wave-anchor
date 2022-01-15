@@ -12,7 +12,7 @@ export class ProgramAccountInfo {
 	character_type: String = "000000"
 	ability_able_at = 0
 	region: String = "000000000"
-	cyber_token_ammount = 0
+	cyber_token_amount = 0
 	constructor(fields: {
 		level: number, 
 		exp: number,
@@ -27,7 +27,7 @@ export class ProgramAccountInfo {
 		character_type: String
 		ability_able_at: number,
 		region: String,
-		cyber_token_ammount: number
+		cyber_token_amount: number
 	} | undefined = undefined) {
 		if (fields) {
 			this.level = fields.level
@@ -43,7 +43,7 @@ export class ProgramAccountInfo {
 			this.character_type = fields.character_type
 			this.ability_able_at = fields.ability_able_at
 			this.region = fields.region
-			this.cyber_token_ammount = fields.cyber_token_ammount
+			this.cyber_token_amount = fields.cyber_token_amount
 		}
 	}
 }

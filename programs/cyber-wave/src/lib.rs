@@ -75,7 +75,7 @@ pub mod cyber_wave {
 		account_data.character_type = character_type;
 		account_data.ability_able_at = 0;
 		account_data.region = "BASE_MENT".to_string();
-		account_data.cyber_token_ammount = 0;
+		account_data.cyber_token_amount = 0;
 
 		Ok(())
 	}
@@ -265,7 +265,7 @@ pub mod cyber_wave {
 		} else {
 			update_account.last_calculated_at = basement_time;
 			logic::calculate_level_and_exp(update_account);
-			update_account.cyber_token_ammount += token_amount;
+			update_account.cyber_token_amount += token_amount;
 		}
 		update_account.last_calculated_at = current_time;
 		Ok(())
@@ -316,7 +316,7 @@ pub struct ProgramAccountInfo {
 	pub character_type: String,
 	pub ability_able_at: u32,
 	pub region: String,
-	pub cyber_token_ammount: u32
+	pub cyber_token_amount: u32
 }
 
 #[derive(Accounts)]

@@ -14,21 +14,14 @@ pub fn calculate_level_and_exp<'info>(account_data: &mut Account<'info, ProgramA
 		let need_exp_to_level_up = 50 * (account_data.level as f64).powf(2_f64) as u32 - account_data.exp;
 		let mut tot_power = (account_data.level_power * account_data.power_magnified) / 10000;
 		let mut need_time_to_level_up: u32;
-		if account_data.character_type == "LUX000" {
-			need_time_to_level_up = (((need_exp_to_level_up as f64 / ((tot_power as f64 / 10_f64) * 1.2)) as f64) * 60_f64) as u32;
-		} else {
-			need_time_to_level_up = (((need_exp_to_level_up as f64 / (tot_power as f64 / 10_f64)) as f64) * 60_f64) as u32;
-		}
+		let level_var = if account_data.character_type == "LUX000" {1.2} else {1.};
+		need_time_to_level_up = (((need_exp_to_level_up as f64 / ((tot_power as f64 / 10_f64) * level_var)) as f64) * 60_f64) as u32;
 		if need_time_to_level_up <= time_elapsed {
 			account_data.exp += need_exp_to_level_up;
 			account_data.level += 1;
 			account_data.level_power = (1.01_f64.powf((account_data.level - 1) as f64) * 1000_f64).round() as u32;
 		} else {
-			if account_data.character_type == "LUX000" {
-				account_data.exp += (((time_elapsed as f64) * (tot_power as f64 / 600_f64)) * 1.2) as u32;
-			} else {
-				account_data.exp += ((time_elapsed as f64) * (tot_power as f64 / 600_f64)) as u32;
-			}
+			account_data.exp += (((time_elapsed as f64) * (tot_power as f64 / 600_f64)) * level_var) as u32;
 			break;
 		}
 		time_elapsed -= need_time_to_level_up;
