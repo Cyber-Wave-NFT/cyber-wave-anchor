@@ -294,8 +294,10 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
-	pub fn claim_cyber (ctx: Contest<ClaimCyber>) -> ProgramResult {
+	pub fn claim_cyber (ctx: Context<ClaimCyber>) -> ProgramResult {
+		let update_account = &mut ctx.accounts.update_account;
 		update_account.cyber_token_amount = 0;
+		Ok(())
 	}
 
 	pub fn tmp_injured_character(ctx: Context<InjuredCharacter>) -> ProgramResult {
