@@ -20,7 +20,7 @@ pub mod cyber_wave {
 		msg!("user pubkey: {:?}", &(&user.key).to_string().clone());
 		account_data.level = 1;
 		account_data.exp = 0;
-		account_data.power_magnified = 10000; // original power magnified * 10000
+		account_data.item_power_magnified = 10000; // original power magnified * 10000
 		// TODO: 정확히 옷 이름들 어떻게 되는지 uncommon etc..
 		let FACEWEAR: [Box<[&str]>; 4] = [Box::new(["Cyber Scouter", "Heart Sunglasses", "In Ear Microphone", "Bitconin Football Mask"]), 
 							Box::new(["Cyber Goggle", "Diamond Sunglasses", "Diamond Lace Veil", "Neon Graffiti Mask"]),
@@ -65,6 +65,7 @@ pub mod cyber_wave {
 		magnify(clothes, CLOTHES, account_data);
 		magnify(neckwear, NECKWEAR, account_data);
 
+		account_data.power_magnified = account_data.item_power_magnified;
 		account_data.level_power = 1000;
 		account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;
 		account_data.account_pubkey = (&user.key).to_string().clone();
@@ -72,9 +73,6 @@ pub mod cyber_wave {
 		account_data.boost = 0;
 		account_data.stun_end_at = 0;
 		account_data.character_type = character_type;
-		if (account_data.character_type == String::from("ARIES0")) {
-			account_data.power_magnified = ((account_data.power_magnified as f32) * 1.01) as u32;
-		}
 		account_data.ability_able_at = 0;
 		account_data.region = "BASE_MENT".to_string();
 
@@ -142,6 +140,12 @@ pub mod cyber_wave {
 
 		// cannot exceed MAX Exp
 		account_data.exp = std::cmp::min(account_data.exp, EXP_LIMIT);
+		Ok(())
+	}
+
+	pub fn update_power(ctx: Context<UpdatePower>, num_aries: u32) -> ProgramResult {
+		let account_data = &mut ctx.accounts.update_account;
+		account_data.power_magnified = (account_data.power_magnified as f32 * (1.01_f32).powf(num_aries as f32)) as u32;
 		Ok(())
 	}
 
@@ -297,11 +301,18 @@ pub struct Register<'info> {
 	pub user: Signer<'info>
 }
 
+#[derive(Accounts)]
+pub struct UpdatePower<'info> {
+	#[account(mut)]
+	pub update_account: Account<'info, ProgramAccountInfo>,
+}
+
 #[account]
 pub struct ProgramAccountInfo {
 	pub level: u32,
 	pub exp: u32,
 	pub power_magnified: u32,
+	pub item_power_magnified: u32,
 	pub level_power: u32,	
 	pub last_calculated_at: u32,
 	pub account_pubkey: String,

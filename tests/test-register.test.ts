@@ -56,15 +56,9 @@ describe('cpi', () => {
                 console.log("is it deposit?")
                 console.log(newDataAccountPubkey.toBase58())
 
-                // nft owner 확인
-                const res = await provider.connection.getTokenLargestAccounts(mintPubkey)
-                const ownerTokenAccount = res.value.find((x) => x.amount === "1") ?? ""
-                if (ownerTokenAccount) {
-                    const info = await mint.getAccountInfo(ownerTokenAccount.address)
-                    const ownerWalletAccount = info.owner.toBase58()
-                }
-                // TODO else 일때는..?
-                const isDeposit = (ownerTokenAccount === serverWalletAccount.publicKey.toBase58()) ? false : true
+                // TODO: nft owner 확인
+                const isDeposit = true
+                // const dataAccount = await register.account.programAccountInfo.fetch(newDataAccountPubkey)
 
                 // NFT owner를 바꾸는 식으로 구현한 다음
                 // NFT의 onwer를 확인하여 등록여부를 확인하는거로 바뀌어야함
@@ -118,6 +112,43 @@ describe('cpi', () => {
                 const result = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
                 console.log(result)
                 // expect(result['level']).toBe(1)
+
+                // after initialize update allies' power (Aries)
+                const ts = await cyberWave.account.programAccountInfo.all()
+                const accounts = ts
+                    .filter((elem: { publicKey: any, account: any }) => (elem.account.accountPubkey === clientWalletAccount.publicKey.toBase58()))
+                let totalAries = accounts.reduce((acc: any, account: any) =>
+                    acc + (account.account.characterType === "ARIES0" ? 1 : 0)
+                    , 0)
+
+                // update all aries power in same wallet
+                // when aries update all
+                if (result.characterType === "ARIES0") {
+                    await accounts.forEach(async (elem: { publicKey: any, account: any }) => {
+                        const allyDataAccountPubkey = elem.publicKey
+                        await cyberWave.rpc.updatePower(
+                            totalAries,
+                            {
+                                accounts: {
+                                    updateAccount: allyDataAccountPubkey,
+                                },
+                                signers: [serverWalletAccount],
+                            }
+                        )
+                    })
+                } else { // if not aries update initialized data account only
+                    await cyberWave.rpc.updatePower(
+                        totalAries,
+                        {
+                            accounts: {
+                                updateAccount: newDataAccountPubkey,
+                            },
+                            signers: [serverWalletAccount],
+                        }
+                    )
+                }
+                const allAccount = await cyberWave.account.programAccountInfo.all()
+
             } catch (err) {
                 console.log(err)
                 fail(err)

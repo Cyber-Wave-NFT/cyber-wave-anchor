@@ -152,7 +152,7 @@ describe('cpi', () => {
                 attributes["tattoo"] ?? "",
                 attributes["clothes"] ?? "",
                 attributes["neckwear"] ?? "",
-                (attributes["skin type"]?.split(" ").pop() ?? "").padEnd(6, '0'),
+                (attributes["skin type"]?.split(" ").pop()?.toUpperCase() ?? "").padEnd(6, '0'),
                 {   
                     accounts: {
                         myAccount: newDataAccountPubkey,
@@ -171,6 +171,45 @@ describe('cpi', () => {
 
             let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
             console.log(postLamports / 1000000000)
+
+            // TODO: 모듈화 하기
+            // after initialize update allies' power (Aries)
+            const ts = await cyberWave.account.programAccountInfo.all()
+            const accounts = ts
+                .filter((elem: { publicKey: any, account: any }) => (elem.account.accountPubkey === clientWalletAccount.publicKey.toBase58()))
+            let totalAries = accounts.reduce((acc: any, account: any) => 
+                acc + (account.account.characterType === "ARIES0" ? 1 : 0)
+            , 0)
+
+            // update all aries power in wallet
+            // when aries update all
+            if ((attributes["skin type"]?.split(" ").pop()?.toUpperCase() ?? "") === "ARIES") {
+                await accounts.forEach(async (elem: { publicKey: any, account: any }) => {
+                    const allyDataAccountPubkey = elem.publicKey
+                    await cyberWave.rpc.updatePower(
+                        totalAries,
+                        {
+                            accounts: {
+                                updateAccount: allyDataAccountPubkey,
+                            },
+                            signers: [serverWalletAccount],
+                        }
+                    )
+                })
+            } else { // if not aries update initialized data account only
+                await cyberWave.rpc.updatePower(
+                    totalAries,
+                    {
+                        accounts: {
+                            updateAccount: newDataAccountPubkey,
+                        },
+                        signers: [serverWalletAccount],
+                    }
+                )
+            }
+            const allAccount = await cyberWave.account.programAccountInfo.all()
+
+            console.log("Initialization finish")
         } else {
             console.log('No initialization')
         }
