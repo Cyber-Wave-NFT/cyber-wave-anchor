@@ -1,6 +1,7 @@
 import * as anchor from '@project-serum/anchor'
 import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { cyberPublicKey } from './config/config'
+import { Utils } from './utils/utils'
 
 jest.setTimeout(30000000)
 describe('wave-result', () => {
@@ -72,7 +73,11 @@ describe('wave-result', () => {
 					transferTokenAmount
 				)
 			]
-			const tx = await cyberWave.rpc.calculateResultFromAccount({
+			// TODO: 8시부터 계산~
+			const tx = await cyberWave.rpc.calculateResultFromAccount(
+				new anchor.BN(transferTokenAmount),
+				Utils.makeId(8),
+				{
 				accounts: {
 					updateAccount: account.pubKey,
 					regionResultAccount: centralRegionResultAccountPubkey
