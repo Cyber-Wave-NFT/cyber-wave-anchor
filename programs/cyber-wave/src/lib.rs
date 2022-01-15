@@ -294,6 +294,10 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
+	pub fn claim_cyber (ctx: Contest<ClaimCyber>) -> ProgramResult {
+		update_account.cyber_token_amount = 0;
+	}
+
 	pub fn tmp_injured_character(ctx: Context<InjuredCharacter>) -> ProgramResult {
 		let injured_character = &mut ctx.accounts.injured_character_account;
 		let current_time = Clock::get().unwrap().unix_timestamp as u32;
@@ -438,6 +442,12 @@ pub struct CalculateResult<'info> {
 
 #[derive(Accounts)]
 pub struct CalculateExpLevel<'info> {
+	#[account(mut)]
+	pub update_account: Account<'info, ProgramAccountInfo>,
+}
+
+#[derive(Accounts)]
+pub struct ClaimCyber<'info> {
 	#[account(mut)]
 	pub update_account: Account<'info, ProgramAccountInfo>,
 }
