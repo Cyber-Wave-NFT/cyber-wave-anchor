@@ -145,7 +145,7 @@ pub mod cyber_wave {
 
 	pub fn update_power(ctx: Context<UpdatePower>, num_aries: u32) -> ProgramResult {
 		let account_data = &mut ctx.accounts.update_account;
-		account_data.power_magnified = (account_data.power_magnified as f32 * (1.01_f32).powf(num_aries as f32)) as u32;
+		account_data.power_magnified = (account_data.item_power_magnified as f32 * (1.01_f32).powf(num_aries as f32)) as u32;
 		Ok(())
 	}
 
@@ -205,28 +205,18 @@ pub mod cyber_wave {
 	pub fn heal_character(ctx: Context<HealCharacter>) -> ProgramResult {
 		let heal_character = &mut ctx.accounts.heal_character_account;
 		let injured_character = &mut ctx.accounts.injured_character_account;
-		msg!("1");
 		let current_time = Clock::get().unwrap().unix_timestamp as u32;
-		msg!("2");
 		if heal_character.character_type != "ZINX00" {
-			msg!("111");
 			return Err(Errors::NotHealingCharacter.into());
 		}
-		msg!("3");
 		if heal_character.ability_able_at > current_time {
-			msg!("122");
 			return Err(Errors::HealPowerNotOn.into());
 		}
-		msg!("4");
 		if injured_character.stun_end_at < current_time {
-			msg!("133");
 			return Err(Errors::NotInjured.into());
 		}
-		msg!("5");
 		heal_character.ability_able_at = current_time + 604800;
-		msg!("6");
 		injured_character.stun_end_at = current_time;
-		msg!("7");
 		Ok(())
 	}
 
