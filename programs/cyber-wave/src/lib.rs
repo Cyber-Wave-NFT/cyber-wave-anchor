@@ -13,11 +13,11 @@ pub mod cyber_wave {
 	const EXP_LIMIT: u32 = 2_000_000;
 
 	use super::*;
-	pub fn initialize(ctx: Context<Initialize>, jacket: String, head_addon: String, facewear: String, 
+	pub fn initialize(ctx: Context<Initialize>, user_pubkey: String, jacket: String, head_addon: String, facewear: String, 
 					tattoo: String, clothes: String, neckwear: String, character_type: String) -> ProgramResult {
 		let account_data = &mut ctx.accounts.my_account;
-		let user: &Signer = &ctx.accounts.user;
-		msg!("user pubkey: {:?}", &(&user.key).to_string().clone());
+		// let user: &Signer = &ctx.accounts.user;
+		// msg!("user pubkey: {:?}", &(&user.key).to_string().clone());
 		account_data.level = 1;
 		account_data.exp = 0;
 		account_data.item_power_magnified = 10000; // original power magnified * 10000
@@ -68,7 +68,7 @@ pub mod cyber_wave {
 		account_data.power_magnified = account_data.item_power_magnified;
 		account_data.level_power = 1000;
 		account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;
-		account_data.account_pubkey = (&user.key).to_string().clone();
+		account_data.account_pubkey = user_pubkey;
 		account_data.weapon_pubkey = "00000000000000000000000000000000000000000000".to_string();
 		account_data.boost = 0;
 		account_data.stun_end_at = 0;
@@ -112,12 +112,12 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
-	pub fn register(ctx: Context<Register>) -> ProgramResult {
+	pub fn register(ctx: Context<Register>, user_pubkey: String) -> ProgramResult {
 		let account_data = &mut ctx.accounts.my_account;
 
 		// register logic
 		// TODO: power, level_power 계산
-		account_data.account_pubkey = ctx.accounts.user.to_account_info().key.to_string();
+		account_data.account_pubkey = user_pubkey;
 		account_data.level = 1 + ((account_data.exp / 50) as f64).sqrt().round() as u32; 	// total_exp = 50 * level^2
 		account_data.level_power = 1.01_f64.powf((account_data.level - 1) as f64) as u32 * 1000; 	// 1% power up per level up 1.01^(level - 1) * 1000(default power)
 		account_data.power_magnified = account_data.item_power_magnified;
@@ -320,8 +320,6 @@ pub mod cyber_wave {
 pub struct Register<'info> {
 	#[account(mut)]
 	pub my_account: Account<'info, ProgramAccountInfo>,
-	#[account(mut)]
-	pub user: Signer<'info>
 }
 
 #[derive(Accounts)]
@@ -342,7 +340,6 @@ pub struct ProgramAccountInfo {
 	pub weapon_pubkey: String,
 	pub boost: u32,
 	pub stun_end_at: u32,
-	pub is_stuned: u32,
 	pub character_type: String,
 	pub ability_able_at: u32,
 	pub region: String,
@@ -353,8 +350,6 @@ pub struct ProgramAccountInfo {
 pub struct Initialize<'info> {
 	#[account(zero)]
 	pub my_account: Account<'info, ProgramAccountInfo>,
-	#[account(mut)]
-	pub user: Signer<'info>,
 	pub system_program: Program<'info, System>,
 }
 

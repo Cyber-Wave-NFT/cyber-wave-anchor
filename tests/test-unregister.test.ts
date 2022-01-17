@@ -73,6 +73,9 @@ describe('cpi', () => {
             // }
 
             if (!isDeposit) {
+                // register
+            }
+            else {
                 const receiver = clientWalletAccount
                 const sender = serverWalletAccount
 
@@ -82,7 +85,7 @@ describe('cpi', () => {
                 const prevResult = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
                 console.log(prevResult)
 
-                const instructions: anchor.web3.TransactionInstruction[] = [
+                const serverInstructions: anchor.web3.TransactionInstruction[] = [
                     Token.createTransferInstruction(
                         TOKEN_PROGRAM_ID,
                         senderTokenAccount.address,
@@ -94,16 +97,15 @@ describe('cpi', () => {
                 ]
 
                 // 트랜잭션 실제 발생
-                const tx = await cyberWave.rpc.unregister({
+                const serverTx = await cyberWave.rpc.unregister({
                     accounts: {
                         myAccount: newDataAccountPubkey,
-                        user: clientWalletAccount.publicKey,
                     },
-                    instructions: instructions,
-                    signers: [clientWalletAccount, serverWalletAccount],
+                    instructions: serverInstructions,
+                    signers: [serverWalletAccount],
                 })
 
-                console.log('Your transaction signature', tx)
+                console.log('Your transaction signature', serverTx)
                 let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
                 console.log(postLamports / 1000000000)
                 const postResult = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)

@@ -1,7 +1,8 @@
 import * as anchor from '@project-serum/anchor'
 import * as borsh from 'borsh'
 import { RegionInfo, RegionInfoSchema } from './borsh.classes'
-import {Utils} from './utils/utils'
+import { serverMainKey } from './config/config'
+import { Utils } from './utils/utils'
 
 jest.setTimeout(30000000)
 describe('cpi', () => {
@@ -13,9 +14,6 @@ describe('cpi', () => {
 	// DAO 프로그램, register 프로그램 가져오기
 	const cyberWave = anchor.workspace.CyberWave
 
-	// 로컬 월렛 키페어 가져오기
-	const serverMainKey = Buffer.from([27,81,124,213,249,242,152,45,212,167,200,161,9,96,58,203,232,4,201,30,99,191,222,174,66,178,120,40,80,181,162,2,123,181,112,155,206,105,144,205,15,98,43,19,29,175,201,37,106,60,94,158,35,195,120,224,95,239,53,54,67,86,118,185])
-
 	// 클라이언트 월렛 어카운트
 	const serverWalletAccount = anchor.web3.Keypair.fromSecretKey(serverMainKey)
 	
@@ -24,6 +22,7 @@ describe('cpi', () => {
 	it('test rns', async () => {
 		const ts = await cyberWave.account.programAccountInfo.all()
 		const accounts = ts.map((elem: {publicKey: any, account: Object}) => (elem.account))
+			.filter((account: any) => (account.lastCalculatedAt != 0))
 		console.log(accounts)
 		const res = accounts.reduce((acc: any, cur: any) => {
 			acc += cur.levelPower * cur.powerMagnified / 10000
@@ -45,7 +44,7 @@ describe('cpi', () => {
 			console.log(prevLamports / 1000000000)
 
 			// 트랜잭션
-			const tx = await cyberWave.rpc.initializeRegionData(
+			const serverTx = await cyberWave.rpc.initializeRegionData(
 				{
 				accounts: {
 					myAccount: centralRegionAccountPubkey,
@@ -63,7 +62,6 @@ describe('cpi', () => {
 						programId: cyberWave.programId,
 					}),
 				],
-				signers: [serverWalletAccount],
 			})
 		}
 		await cyberWave.rpc.sizeCalculate(
@@ -76,7 +74,7 @@ describe('cpi', () => {
 			accounts: {
 				centralRegionAccount: centralRegionAccountPubkey,
 			},
-			signers: [],
+			signers: [serverWalletAccount],
 		})
 		const result = await cyberWave.account.regionInfo.fetch(centralRegionAccountPubkey)
 		console.log(result)

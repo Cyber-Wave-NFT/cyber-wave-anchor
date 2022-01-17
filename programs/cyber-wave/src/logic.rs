@@ -34,7 +34,7 @@ pub fn calculate_result(zombie_power: u32, characters_power: u32, random_seed: S
 	return winning_rate > (random_number as f64);
 }
 
-pub fn calculate_random(base_seed: String) -> u32 {
+pub fn calculate_random(random_seed: String) -> u32 {
 	// generate random number 0~100
 	let val = digest(random_seed);
 	let front_seed = &val[2..4];

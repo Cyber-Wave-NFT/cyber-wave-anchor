@@ -35,9 +35,8 @@ describe('cpi', () => {
                 await cyberWave.rpc.moveRegion("REGION_01", {
                 	accounts: {
                 		myAccount: newDataAccountPubkey,
-                		user: clientWalletAccount.publicKey,
                 	},
-                	signers: [clientWalletAccount, serverWalletAccount],
+                	signers: [serverWalletAccount],
                 })
                 const result = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
                 console.log(result)

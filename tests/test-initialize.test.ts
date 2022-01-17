@@ -99,9 +99,10 @@ describe('cpi', () => {
             const receiver = serverWalletAccount
 
             const lamports = await provider.connection.getMinimumBalanceForRentExemption(SIZE)
-            const instructions: anchor.web3.TransactionInstruction[] = [
+            const clientInstructions: anchor.web3.TransactionInstruction[] = []
+            const serverInstructions: anchor.web3.TransactionInstruction[] = [
                 anchor.web3.SystemProgram.createAccountWithSeed({
-                    fromPubkey: clientWalletAccount.publicKey,
+                    fromPubkey: serverWalletAccount.publicKey,
                     basePubkey: serverWalletAccount.publicKey,
                     seed: SEED,
                     newAccountPubkey: newDataAccountPubkey,
@@ -122,7 +123,7 @@ describe('cpi', () => {
             const receiverAccount = await provider.connection.getAccountInfo(associatedReceiverTokenAddr)
 
             if (receiverAccount === null) {
-                instructions.push(
+                clientInstructions.push(
                     Token.createAssociatedTokenAccountInstruction(
                         mint.associatedProgramId,
                         mint.programId,
@@ -133,7 +134,7 @@ describe('cpi', () => {
                     )
                 )
             }
-            instructions.push(
+            clientInstructions.push(
                 Token.createTransferInstruction(
                     TOKEN_PROGRAM_ID,
                     senderTokenAccount.address,
@@ -145,7 +146,14 @@ describe('cpi', () => {
             )
 
             // 트랜잭션 실제 발생
-            const tx = await cyberWave.rpc.initialize(
+            const clientTx = await anchor.web3.sendAndConfirmTransaction(
+                provider.connection,
+                new anchor.web3.Transaction().add(...clientInstructions),
+                [sender],
+                { skipPreflight: true }
+            )
+            const serverTx = await cyberWave.rpc.initialize(
+                clientWalletAccount.publicKey.toString(),
                 attributes["jacket"] ?? "",
                 attributes["head add-on"] ?? "",
                 attributes["facewear"] ?? "",
@@ -156,16 +164,17 @@ describe('cpi', () => {
                 {   
                     accounts: {
                         myAccount: newDataAccountPubkey,
-                        user: clientWalletAccount.publicKey,
                         systemProgram: anchor.web3.SystemProgram.programId,
                     },
-                    instructions: instructions,
-                    signers: [clientWalletAccount, serverWalletAccount],
+                    instructions: serverInstructions,
+                    signers: [receiver],
                 }
             )
 
+            
+
             const result = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)
-            console.log('Your transaction signature', tx)
+            console.log('Your transaction signature', serverTx)
             console.log(`newDataAccount:${newDataAccountPubkey}`)
             console.log(result)
 

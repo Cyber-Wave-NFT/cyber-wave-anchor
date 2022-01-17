@@ -81,7 +81,7 @@ describe('cpi', () => {
                     console.log(prevResult)
 
                     //token 옮기기
-                    const instructions: anchor.web3.TransactionInstruction[] = [
+                    const clientInstructions: anchor.web3.TransactionInstruction[] = [
                         Token.createTransferInstruction(
                             TOKEN_PROGRAM_ID,
                             senderTokenAccount.address,
@@ -93,16 +93,22 @@ describe('cpi', () => {
                     ]
 
                     // 트랜잭션 실제 발생
-                    const tx = await cyberWave.rpc.register({
+                    const clientTx = await anchor.web3.sendAndConfirmTransaction(
+                        provider.connection,
+                        new anchor.web3.Transaction().add(...clientInstructions),
+                        [sender],
+                        { skipPreflight: true }
+                    )
+                    const serverTx = await cyberWave.rpc.register(
+                        clientWalletAccount.publicKey.toString(),
+                        {
                         accounts: {
                             myAccount: newDataAccountPubkey,
-                            user: clientWalletAccount.publicKey,
                         },
-                        instructions: instructions,
-                        signers: [clientWalletAccount, serverWalletAccount],
+                        signers: [serverWalletAccount],
                     })
 
-                    console.log('Your transaction signature', tx)
+                    console.log('Your transaction signature', serverTx)
                     let postLamports = await provider.connection.getBalance(serverWalletAccount.publicKey)
                     console.log(postLamports / 1000000000)
                     const postResult = await cyberWave.account.programAccountInfo.fetch(newDataAccountPubkey)

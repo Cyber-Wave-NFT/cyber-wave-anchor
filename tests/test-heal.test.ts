@@ -59,6 +59,7 @@ describe('heal', () => {
             ]
             // 트랜잭션 실제 발생
             const tx = await cyberWave.rpc.initialize(
+                clientWalletAccount.publicKey.toString(),
                 "",
                 "",
                 "",
@@ -69,11 +70,10 @@ describe('heal', () => {
                 {
                     accounts: {
                         myAccount: healDataAccountPubkey,
-                        user: clientWalletAccount.publicKey,
                         systemProgram: anchor.web3.SystemProgram.programId,
                     },
                     instructions: healInstructions,
-                    signers: [clientWalletAccount, serverWalletAccount],
+                    signers: [serverWalletAccount],
                 }
             )
         }
@@ -95,6 +95,7 @@ describe('heal', () => {
             console.log(clientWalletAccount.publicKey.toBase58())
             // 트랜잭션 실제 발생
             const tx = await cyberWave.rpc.initialize(
+                clientWalletAccount.publicKey.toString(),
                 "",
                 "",
                 "",
@@ -105,28 +106,29 @@ describe('heal', () => {
                 {
                     accounts: {
                         myAccount: injuredDataAccountPubkey,
-                        user: clientWalletAccount.publicKey,
                         systemProgram: anchor.web3.SystemProgram.programId,
                     },
                     instructions: injuredInstructions,
-                    signers: [clientWalletAccount, serverWalletAccount],
+                    signers: [serverWalletAccount],
                 }
             )
         }
-        const injuredDataAccountt1 = await cyberWave.account.programAccountInfo.fetch(injuredDataAccountPubkey)
         await cyberWave.rpc.tmpInjuredCharacter({
             accounts: {
                 injuredCharacterAccount: injuredDataAccountPubkey
             },
             signers: [],
         })
-        const injuredDataAccountt = await cyberWave.account.programAccountInfo.fetch(injuredDataAccountPubkey)
-        const tx = await cyberWave.rpc.healCharacter({
+        const healDataAccountBefore = await cyberWave.account.programAccountInfo.fetch(healDataAccountPubkey)
+        const injuredDataAccountBefore = await cyberWave.account.programAccountInfo.fetch(injuredDataAccountPubkey)
+        console.log("healDataAccount:", healDataAccountBefore)
+        console.log("injuredDataAccount:", injuredDataAccountBefore)
+        const serverTx = await cyberWave.rpc.healCharacter({
             accounts: {
                 healCharacterAccount: healDataAccountPubkey,
                 injuredCharacterAccount: injuredDataAccountPubkey,
             },
-            signers: [],
+            signers: [serverWalletAccount],
         })
         const healDataAccountAfter = await cyberWave.account.programAccountInfo.fetch(healDataAccountPubkey)
         const injuredDataAccountAfter = await cyberWave.account.programAccountInfo.fetch(injuredDataAccountPubkey)

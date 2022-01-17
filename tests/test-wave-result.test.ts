@@ -1,6 +1,7 @@
 import * as anchor from '@project-serum/anchor'
 import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { cyberPublicKey } from './config/config'
+import { serverMainKey } from './config/config'
 import { Utils } from './utils/utils'
 
 jest.setTimeout(30000000)
@@ -10,9 +11,6 @@ describe('wave-result', () => {
 	anchor.setProvider(provider)
 	// DAO 프로그램, register 프로그램 가져오기
 	const cyberWave = anchor.workspace.CyberWave
-
-	// 로컬 월렛 키페어 가져오기
-	const serverMainKey = Buffer.from([27,81,124,213,249,242,152,45,212,167,200,161,9,96,58,203,232,4,201,30,99,191,222,174,66,178,120,40,80,181,162,2,123,181,112,155,206,105,144,205,15,98,43,19,29,175,201,37,106,60,94,158,35,195,120,224,95,239,53,54,67,86,118,185])
 
 	// 클라이언트 월렛 어카운트
 	const serverWalletAccount = anchor.web3.Keypair.fromSecretKey(serverMainKey)
@@ -73,7 +71,7 @@ describe('wave-result', () => {
 					transferTokenAmount
 				)
 			]
-			const tx = await cyberWave.rpc.calculateResultFromAccount(
+			const serverTx = await cyberWave.rpc.calculateResultFromAccount(
 				new anchor.BN(transferTokenAmount),
 				Utils.makeId(8),
 				{
@@ -90,7 +88,7 @@ describe('wave-result', () => {
 			acc + ((elem.account.characterType === "ARIES0" && elem.account.stunEndAt < currentTime) ? 1 : 0)
 			, 0)
 		await accounts.forEach(async (account: any) => {
-			const tx = await cyberWave.rpc.calculateExpLevel(
+			const serverTx = await cyberWave.rpc.calculateExpLevel(
 				new anchor.BN(totalAries),
 				{
 					accounts: {
@@ -99,7 +97,7 @@ describe('wave-result', () => {
 					},
 					signers: [serverWalletAccount],
 				})
-		}
+		})
 	})
 
 })
