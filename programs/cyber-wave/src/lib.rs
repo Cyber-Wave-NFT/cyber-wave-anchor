@@ -230,6 +230,7 @@ pub mod cyber_wave {
 		let region_account = &ctx.accounts.region_result_account;
 		// calculate next 8pm in 24hours
 		let basement_time: u32 = update_account.last_calculated_at + 86400 - (update_account.last_calculated_at - 3600) % 86400;
+
 		// check game result
 		let mut is_win = false;
 		if update_account.region == "CYBERWAVE" {
@@ -267,7 +268,6 @@ pub mod cyber_wave {
 	pub fn calculate_exp_level(ctx: Context<CalculateExpLevel>, basement_time: u32, survived_aries: u32) -> ProgramResult {
 		let update_account = &mut ctx.accounts.update_account;
 		let current_time = Clock::get().unwrap().unix_timestamp as u32;
-		// calculate next 8pm in 24hours
 
 		// stuned
 		if update_account.stun_end_at > basement_time {
@@ -291,7 +291,6 @@ pub mod cyber_wave {
 			}
 		}
 
-		update_account.region = "CYBERWAVE".to_string();
 		update_account.last_calculated_at = current_time;
 		Ok(())
 	}
