@@ -49,9 +49,14 @@ describe('cpi', () => {
 			"CENTRAL_REGION1",
 			cyberWave.programId
 		)
+
+		const currTime = Math.floor(Date.now() / 1000)
+		// e.g. REGION_RESULT_11_28
+		const regionResultSeed = Utils.getRegionResultSeed(currTime)
+
 		centralRegionResultAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
 			serverWalletAccount.publicKey,
-			"CENTRAL_REGION_RESULT",
+			regionResultSeed,
 			cyberWave.programId
 		)
 		const lamports = await provider.connection.getMinimumBalanceForRentExemption(SIZE)
@@ -71,7 +76,7 @@ describe('cpi', () => {
 						anchor.web3.SystemProgram.createAccountWithSeed({
 							fromPubkey: serverWalletAccount.publicKey,
 							basePubkey: serverWalletAccount.publicKey,
-							seed: "CENTRAL_REGION_RESULT",
+							seed: regionResultSeed,
 							newAccountPubkey: centralRegionResultAccountPubkey,
 							lamports,
 							space: SIZE,

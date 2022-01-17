@@ -1,3 +1,6 @@
+import * as moment from 'moment'
+import 'moment-timezone'
+
 export class Utils{
     public static makeId(length: number) {
         let result = ''
@@ -8,5 +11,9 @@ export class Utils{
                 charactersLength))
         }
         return result
+    }
+    public static getRegionResultSeed(timestamp: number) {
+        const TIMEZONE = 'EST'
+        return "REGION_RESULT_" + moment.unix(timestamp).tz(TIMEZONE).format('MM_DD')
     }
 }

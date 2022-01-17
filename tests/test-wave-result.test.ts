@@ -27,16 +27,23 @@ describe('wave-result', () => {
 															power: elem.account.powerMagnified * elem.account.levelPower / 10000,
 															lastCalculatedAt: elem.account.lastCalculatedAt }))
 		console.log(accounts)
+
 		const numAttack = accounts.reduce((acc: any, elem: { pubKey: any, region: any, power: number, lastCalculatedAt: number }) =>
 			acc + (elem.region !== "CYBERWAVE" ? 1 : 0)
 			, 0)
-		const centralRegionResultAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
-			serverWalletAccount.publicKey,
-			"CENTRAL_REGION_RESULT",
-			cyberWave.programId
-		)
-		const result = await cyberWave.account.regionResultInfo.fetch(centralRegionResultAccountPubkey)
 		if (numAttack > 0) {
+			const currentTime = 1642467923 //Math.floor(Date.now() / 1000)
+			const attackSurvivors = accounts.filter((account: any) => account.region !== "CYBERWAVE")
+			const basementTime = attackSurvivors[0].lastCalculatedAt + 86400 - (attackSurvivors[0].lastCalculatedAt - 3600) % 86400;
+			const regionResultSeed = Utils.getRegionResultSeed(basementTime)
+
+			const centralRegionResultAccountPubkey = await anchor.web3.PublicKey.createWithSeed(
+				serverWalletAccount.publicKey,
+				regionResultSeed,
+				cyberWave.programId
+			)
+			const result = await cyberWave.account.regionResultInfo.fetch(centralRegionResultAccountPubkey)
+
 			await Promise.all(accounts.map(async (account: any) => {
 				const mintPubkey = new anchor.web3.PublicKey(cyberPublicKey)
 				const mint = new Token(
@@ -95,10 +102,6 @@ describe('wave-result', () => {
 				}
 			}))
 
-			const attackSurvivors = accounts.filter((account: any) => account.region !== "CYBERWAVE")
-			// const basementTime = attackSurvivors[0].lastCalculatedAt + 86400 - (attackSurvivors[0].lastCalculatedAt - 3600) % 86400;
-			const basementTime = 1642467600;
-			const currentTime = 1642467923 //Date.now() / 1000
 			const totalAries = ts.reduce((acc: any, elem: { publicKey: any, account: any }) =>
 				acc + ((elem.account.characterType === "ARIES0" && elem.account.stunEndAt < currentTime) ? 1 : 0)
 				, 0)
