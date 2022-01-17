@@ -124,7 +124,7 @@ describe('cpi', () => {
                 let totalAries = accounts.reduce((acc: any, account: any) =>
                     acc + (account.account.characterType === "ARIES0" ? 1 : 0)
                     , 0)
-                await accounts.forEach(async (elem: { publicKey: any, account: any }) => {
+                await Promise.all(accounts.map(async (elem: { publicKey: any, account: any }) => {
                     const allyDataAccountPubkey = elem.publicKey
                     await cyberWave.rpc.updatePower(
                         totalAries,
@@ -135,7 +135,7 @@ describe('cpi', () => {
                             signers: [serverWalletAccount],
                         }
                     )
-                })
+                }))
             }
 
         } catch (err) {

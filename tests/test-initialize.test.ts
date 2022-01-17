@@ -194,7 +194,7 @@ describe('cpi', () => {
             // update all aries power in wallet
             // when aries update all
             if ((attributes["skin type"]?.split(" ").pop()?.toUpperCase() ?? "") === "ARIES") {
-                await accounts.forEach(async (elem: { publicKey: any, account: any }) => {
+                await Promise.all(accounts.map(async (elem: { publicKey: any, account: any }) => {
                     const allyDataAccountPubkey = elem.publicKey
                     await cyberWave.rpc.updatePower(
                         totalAries,
@@ -205,7 +205,7 @@ describe('cpi', () => {
                             signers: [serverWalletAccount],
                         }
                     )
-                })
+                }))
             } else { // if not aries update initialized data account only
                 await cyberWave.rpc.updatePower(
                     totalAries,
