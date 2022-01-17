@@ -221,6 +221,7 @@ pub mod cyber_wave {
 		}
 		heal_character.ability_able_at = current_time + 604800;
 		injured_character.stun_end_at = current_time;
+		injured_character.last_calculated_at = current_time;
 		Ok(())
 	}
 
@@ -235,16 +236,16 @@ pub mod cyber_wave {
 			return Err(Errors::NotInRegion.into());
 		}
 		if update_account.region == "REGION_01" {
-			let is_win = region_account.region_1_is_win;
+			is_win = region_account.region_1_is_win;
 		}
 		if update_account.region == "REGION_02" {
-			let is_win = region_account.region_2_is_win;
+			is_win = region_account.region_2_is_win;
 		}
 		if update_account.region == "REGION_03" {
-			let is_win = region_account.region_3_is_win;
+			is_win = region_account.region_3_is_win;
 		}
 		if update_account.region == "REGION_04" {
-			let is_win = region_account.region_4_is_win;
+			is_win = region_account.region_4_is_win;
 		}
 		update_account.region = "CYBERWAVE".to_string();
 		// vision class can survive 30%
@@ -263,11 +264,11 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
-	pub fn calculate_exp_level(ctx: Context<CalculateExpLevel>, survived_aries: u32) -> ProgramResult {
+	pub fn calculate_exp_level(ctx: Context<CalculateExpLevel>, basement_time: u32, survived_aries: u32) -> ProgramResult {
 		let update_account = &mut ctx.accounts.update_account;
 		let current_time = Clock::get().unwrap().unix_timestamp as u32;
 		// calculate next 8pm in 24hours
-		let basement_time: u32 = update_account.last_calculated_at + 86400 - (update_account.last_calculated_at - 3600) % 86400;
+
 		// stuned
 		if update_account.stun_end_at > basement_time {
 			update_account.last_calculated_at = update_account.stun_end_at;
@@ -290,6 +291,7 @@ pub mod cyber_wave {
 			}
 		}
 
+		update_account.region = "CYBERWAVE".to_string();
 		update_account.last_calculated_at = current_time;
 		Ok(())
 	}

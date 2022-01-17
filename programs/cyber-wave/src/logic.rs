@@ -7,6 +7,7 @@ use sha256::digest;
 pub fn calculate_level_and_exp<'info>(account_data: &mut Account<'info, ProgramAccountInfo>, current_time: u32) {
 	// exp up occurs power up
 	// so calculate level, exp, power when has to level up
+	if account_data.last_calculated_at > current_time {return}
 	let mut time_elapsed = (current_time - account_data.last_calculated_at) / 60;
 	while time_elapsed > 0 {
 		// next level total exp - current exp
