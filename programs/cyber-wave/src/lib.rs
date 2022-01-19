@@ -2,10 +2,8 @@
 mod logic;
 use anchor_lang::prelude::*;
 use solana_program::clock::Clock;
+use solana_program::sysvar;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
-mod pc;
-use pc::Price;
-use arrayref::array_ref;
 
 declare_id!("ETmGRPZESjms15H8QWeqE9oGk7pKKmYENv6MBSKEiD1A");
 
@@ -156,9 +154,14 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
-	pub fn size_calculate(ctx: Context<WaveSizeCalc>, power_all: u32, random1: String, random2: String, random3: String, random4: String) -> ProgramResult {
+	pub fn size_calculate(ctx: Context<WaveSizeCalc>, power_all: u32) -> ProgramResult {
 		const POWER_CONST_PERCENT: u32 = 70;
 		let account_data = &mut ctx.accounts.central_region_account;
+
+		let random1 = logic::get_random_seed(&ctx.accounts.sol_price_account, &ctx.accounts.recent_blockhashes, "a");
+		let random2 = logic::get_random_seed(&ctx.accounts.sol_price_account, &ctx.accounts.recent_blockhashes, "b");
+		let random3 = logic::get_random_seed(&ctx.accounts.sol_price_account, &ctx.accounts.recent_blockhashes, "c");
+		let random4 = logic::get_random_seed(&ctx.accounts.sol_price_account, &ctx.accounts.recent_blockhashes, "d");
 		let r1 = logic::calculate_random(random1);
 		let r2 = logic::calculate_random(random2);
 		let r3 = logic::calculate_random(random3);
@@ -180,23 +183,10 @@ pub mod cyber_wave {
 		let zombie_power = &mut ctx.accounts.central_region_account;
 		let result = &mut ctx.accounts.central_region_result_account;
 
-		let price_buffer = &ctx.accounts.sol_price_account;
-		let mut price_oracle = Price::load(&price_buffer).unwrap();
-		let price = price_oracle.agg.price;
-
-		let current_time: i64 = Clock::get().unwrap().unix_timestamp;
-
-		let recent_blockhashes = &ctx.accounts.recent_blockhashes;
-		let data = recent_blockhashes.data.borrow();
-		let most_recent = array_ref![data, 8, 8];
-        let index = i64::from_le_bytes(*most_recent);
-
-		let random_seed = (price + current_time + index).to_string();
-
-		let random1 = format!("{}a", random_seed.to_owned());
-		let random2 = format!("{}b", random_seed.to_owned());
-		let random3 = format!("{}c", random_seed.to_owned());
-		let random4 = format!("{}d", random_seed.to_owned());
+		let random1 = logic::get_random_seed(&ctx.accounts.sol_price_account, &ctx.accounts.recent_blockhashes, "a");
+		let random2 = logic::get_random_seed(&ctx.accounts.sol_price_account, &ctx.accounts.recent_blockhashes, "b");
+		let random3 = logic::get_random_seed(&ctx.accounts.sol_price_account, &ctx.accounts.recent_blockhashes, "c");
+		let random4 = logic::get_random_seed(&ctx.accounts.sol_price_account, &ctx.accounts.recent_blockhashes, "d");
 
 		result.region_1_zombie_power = zombie_power.region_1_power;
 		result.region_1_characters_power = region_1_power;
@@ -245,7 +235,7 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
-	pub fn calculate_result_from_account(ctx: Context<CalculateResult>, token_amount: u32, random: String) -> ProgramResult {
+	pub fn calculate_result_from_account(ctx: Context<CalculateResult>, token_amount: u32) -> ProgramResult {
 		let update_account = &mut ctx.accounts.update_account;
 		let region_account = &ctx.accounts.region_result_account;
 		// calculate next 8pm in 24hours
@@ -271,6 +261,7 @@ pub mod cyber_wave {
 		update_account.region = "CYBERWAVE".to_string();
 		// vision class can survive 30%
 		if update_account.character_type == "VISION" {
+			let random = logic::get_random_seed(&ctx.accounts.sol_price_account, &ctx.accounts.recent_blockhashes, "");
 			let random_number = logic::calculate_random(random);
 			if random_number < 30 {
 				is_win = true;
@@ -407,7 +398,11 @@ pub struct SetRegionData<'info> {
 #[derive(Accounts)]
 pub struct WaveSizeCalc<'info> {
 	#[account(mut)]
-	pub central_region_account: Account<'info, RegionInfo>
+	pub central_region_account: Account<'info, RegionInfo>,
+	#[account()]
+	pub sol_price_account: AccountInfo<'info>,
+	#[account(address = sysvar::recent_blockhashes::id())]
+    recent_blockhashes: UncheckedAccount<'info>,
 }
 
 #[derive(Accounts)]
@@ -459,7 +454,11 @@ pub struct InjuredCharacter<'info> {
 pub struct CalculateResult<'info> {
 	#[account(mut)]
 	pub update_account: Account<'info, ProgramAccountInfo>,
-	pub region_result_account: Account<'info, RegionResultInfo>
+	pub region_result_account: Account<'info, RegionResultInfo>,
+	#[account()]
+	pub sol_price_account: AccountInfo<'info>,
+	#[account(address = sysvar::recent_blockhashes::id())]
+    recent_blockhashes: UncheckedAccount<'info>,
 }
 
 #[derive(Accounts)]

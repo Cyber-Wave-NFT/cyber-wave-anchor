@@ -1,8 +1,9 @@
 import * as anchor from '@project-serum/anchor'
 import * as borsh from 'borsh'
 import { RegionInfo, RegionInfoSchema } from './borsh.classes'
-import { serverMainKey } from './config/config'
+import { serverMainKey, DEVNET_SOLPRICE } from './config/config'
 import { Utils } from './utils/utils'
+import { SYSVAR_RECENT_BLOCKHASHES_PUBKEY } from "@solana/web3.js"
 
 jest.setTimeout(30000000)
 describe('cpi', () => {
@@ -66,13 +67,11 @@ describe('cpi', () => {
 		}
 		await cyberWave.rpc.sizeCalculate(
 			new anchor.BN(res),
-			Utils.makeId(8),
-			Utils.makeId(8),
-			Utils.makeId(8),
-			Utils.makeId(8),
 			{
 			accounts: {
 				centralRegionAccount: centralRegionAccountPubkey,
+				solPriceAccount: new anchor.web3.PublicKey(DEVNET_SOLPRICE),
+				recentBlockhashes: SYSVAR_RECENT_BLOCKHASHES_PUBKEY
 			},
 			signers: [serverWalletAccount],
 		})

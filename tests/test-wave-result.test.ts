@@ -1,8 +1,9 @@
 import * as anchor from '@project-serum/anchor'
 import { Token, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { cyberPublicKey } from './config/config'
-import { serverMainKey } from './config/config'
+import { serverMainKey, DEVNET_SOLPRICE } from './config/config'
 import { Utils } from './utils/utils'
+import { SYSVAR_RECENT_BLOCKHASHES_PUBKEY } from "@solana/web3.js"
 
 jest.setTimeout(30000000)
 describe('wave-result', () => {
@@ -90,11 +91,12 @@ describe('wave-result', () => {
 					// ]
 					const serverTx = await cyberWave.rpc.calculateResultFromAccount(
 						new anchor.BN(transferTokenAmount),
-						Utils.makeId(8),
 						{
 							accounts: {
 								updateAccount: account.pubKey,
-								regionResultAccount: centralRegionResultAccountPubkey
+								regionResultAccount: centralRegionResultAccountPubkey,
+								solPriceAccount: new anchor.web3.PublicKey(DEVNET_SOLPRICE),
+								recentBlockhashes: SYSVAR_RECENT_BLOCKHASHES_PUBKEY
 							},
 							// instructions: instructions,
 							signers: [serverWalletAccount],
