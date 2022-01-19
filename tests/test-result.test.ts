@@ -86,10 +86,6 @@ describe('cpi', () => {
 				})
 		}
 		await cyberWave.rpc.regionResultCalculate(
-			Utils.makeId(8),
-			Utils.makeId(8),
-			Utils.makeId(8),
-			Utils.makeId(8),
 			new anchor.BN(res.region_1),
 			new anchor.BN(res.region_2),
 			new anchor.BN(res.region_3),
@@ -98,6 +94,8 @@ describe('cpi', () => {
 			accounts: {
 				centralRegionAccount: centralRegionAccountPubkey,
 				centralRegionResultAccount: centralRegionResultAccountPubkey,
+				solPriceAccount: new anchor.web3.PublicKey("J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix"),
+				recentBlockhashes: new anchor.web3.PublicKey("SysvarRecentB1ockHashes11111111111111111111")
 			},
 			signers: [serverWalletAccount],
 		})

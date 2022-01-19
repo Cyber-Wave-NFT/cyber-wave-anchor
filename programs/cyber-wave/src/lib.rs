@@ -3,6 +3,9 @@ mod logic;
 use anchor_lang::prelude::*;
 use solana_program::clock::Clock;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
+mod pc;
+use pc::Price;
+use arrayref::array_ref;
 
 declare_id!("ETmGRPZESjms15H8QWeqE9oGk7pKKmYENv6MBSKEiD1A");
 
@@ -173,10 +176,27 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
-	pub fn region_result_calculate(ctx: Context<RegionResult>, random1: String, random2: String, random3: String, random4: String,
-			region_1_power: u32, region_2_power: u32, region_3_power: u32, region_4_power: u32) -> ProgramResult {
+	pub fn region_result_calculate(ctx: Context<RegionResult>, region_1_power: u32, region_2_power: u32, region_3_power: u32, region_4_power: u32) -> ProgramResult {
 		let zombie_power = &mut ctx.accounts.central_region_account;
 		let result = &mut ctx.accounts.central_region_result_account;
+
+		let price_buffer = &ctx.accounts.sol_price_account;
+		let mut price_oracle = Price::load(&price_buffer).unwrap();
+		let price = price_oracle.agg.price;
+
+		let current_time: i64 = Clock::get().unwrap().unix_timestamp;
+
+		let recent_blockhashes = &ctx.accounts.recent_blockhashes;
+		let data = recent_blockhashes.data.borrow();
+		let most_recent = array_ref![data, 8, 8];
+        let index = i64::from_le_bytes(*most_recent);
+
+		let random_seed = (price + current_time + index).to_string();
+
+		let random1 = format!("{}a", random_seed.to_owned());
+		let random2 = format!("{}b", random_seed.to_owned());
+		let random3 = format!("{}c", random_seed.to_owned());
+		let random4 = format!("{}d", random_seed.to_owned());
 
 		result.region_1_zombie_power = zombie_power.region_1_power;
 		result.region_1_characters_power = region_1_power;
@@ -395,7 +415,11 @@ pub struct RegionResult<'info> {
 	#[account(mut)]
 	pub central_region_account: Account<'info, RegionInfo>,
 	#[account(mut)]
-	pub central_region_result_account: Account<'info, RegionResultInfo>
+	pub central_region_result_account: Account<'info, RegionResultInfo>,
+	#[account()]
+	pub sol_price_account: AccountInfo<'info>,
+	#[account(address = sysvar::recent_blockhashes::id())]
+    recent_blockhashes: UncheckedAccount<'info>,
 }
 
 #[derive(Accounts)]
