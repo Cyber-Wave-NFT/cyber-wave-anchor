@@ -3,7 +3,6 @@ use anchor_lang::prelude::*;
 use solana_program::clock::Clock;
 use crate::ProgramAccountInfo;
 use sha256::digest;
-mod pc;
 use pc::Price;
 use arrayref::array_ref;
 
