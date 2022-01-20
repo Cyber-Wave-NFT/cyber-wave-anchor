@@ -3,7 +3,7 @@ use anchor_lang::prelude::*;
 use solana_program::clock::Clock;
 use crate::ProgramAccountInfo;
 use sha256::digest;
-use pc::Price;
+use crate::pc::Price;
 use arrayref::array_ref;
 
 pub fn calculate_level_and_exp<'info>(account_data: &mut Account<'info, ProgramAccountInfo>, current_time: u32) {
@@ -46,16 +46,16 @@ pub fn calculate_random(random_seed: String) -> u32 {
 }
 
 pub fn get_random_seed(price_buffer: &anchor_lang::prelude::AccountInfo, recent_blockhashes: &anchor_lang::UncheckedAccount, additional_seed: &str) -> String {
-		let mut price_oracle = Price::load(&price_buffer).unwrap();
-		let price = price_oracle.agg.price;
+	let mut price_oracle = Price::load(&price_buffer).unwrap();
+	let price = price_oracle.agg.price;
 
-		let current_time: i64 = Clock::get().unwrap().unix_timestamp;
+	let current_time: i64 = Clock::get().unwrap().unix_timestamp;
 
-		let data = recent_blockhashes.data.borrow();
-		let most_recent = array_ref![data, 8, 8];
-        let index = i64::from_le_bytes(*most_recent);
+	let data = recent_blockhashes.data.borrow();
+	let most_recent = array_ref![data, 8, 8];
+	let index = i64::from_le_bytes(*most_recent);
 
-		let random_seed: String = (price + current_time + index).to_string();
+	let random_seed: String = (price + current_time + index).to_string();
 
-		return random_seed.to_owned() + additional_seed;
+	return random_seed.to_owned() + additional_seed;
 }
