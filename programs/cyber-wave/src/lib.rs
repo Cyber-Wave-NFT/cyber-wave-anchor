@@ -149,6 +149,25 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
+	pub fn free_unregister(ctx: Context<Register>) -> ProgramResult {
+		let account_data =  &mut ctx.accounts.my_account;
+		let current_time = Clock::get().unwrap().unix_timestamp as u32;
+
+		if current_time < account_data.last_calculated_at {
+			return Err(Errors::InvalidTime.into());
+		} else if current_time - account_data.last_calculated_at > 2592000 {
+			let token_amount = (current_time - account_data.last_calculated_at) / 3600;
+			account_data.cyber_token_amount += token_amount;
+		}
+
+		// unregister logic
+		account_data.region = "000000000".to_string();	// region clear
+		account_data.power_magnified = account_data.item_power_magnified;
+		account_data.last_calculated_at = 0;			// registered at time clear
+
+		Ok(())
+	}
+
 	pub fn update_power(ctx: Context<UpdatePower>, num_aries: u32) -> ProgramResult {
 		let account_data = &mut ctx.accounts.update_account;
 		account_data.power_magnified = (account_data.item_power_magnified as f32 * (1.01_f32).powf(num_aries as f32)) as u32;
@@ -484,4 +503,6 @@ pub enum Errors {
 	NotInjured,
 	#[msg("account not in region")]
 	NotInRegion,
+	#[msg("last calculated time is larger than current time")]
+	InvalidTime,
 }
