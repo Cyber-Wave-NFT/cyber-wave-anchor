@@ -150,6 +150,26 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
+	pub fn tmp_register(ctx: Context<Register>, user_pubkey: String, register_day: u32) -> ProgramResult {
+		let account_data = &mut ctx.accounts.my_account;
+		let current_time = Clock::get().unwrap().unix_timestamp as u32;
+
+		// register logic
+		// TODO: power, level_power 계산
+		account_data.account_pubkey = user_pubkey;
+		account_data.level = 1 + ((account_data.exp / 50) as f64).sqrt().round() as u32; 	// total_exp = 50 * level^2
+		account_data.level_power = 1.01_f64.powf((account_data.level - 1) as f64) as u32 * 1000; 	// 1% power up per level up 1.01^(level - 1) * 1000(default power)
+		account_data.power_magnified = account_data.item_power_magnified;
+		// registered before register_day
+		account_data.last_calculated_at = current_time - 86400 * register_day;		// register time
+		account_data.region = "CYBERWAVE".to_string();										// default region
+
+		// 추가 필요 목록
+		// account pubKey
+		// NFT pubKey
+		Ok(())
+	}
+
 	pub fn free_unregister(ctx: Context<Register>) -> ProgramResult {
 		let account_data =  &mut ctx.accounts.my_account;
 		let current_time = Clock::get().unwrap().unix_timestamp as u32;
@@ -157,6 +177,7 @@ pub mod cyber_wave {
 		if current_time < account_data.last_calculated_at {
 			return Err(Errors::InvalidTime.into());
 		} else if current_time - account_data.last_calculated_at > 2592000 {
+			// 1 token per hour
 			let token_amount = (current_time - account_data.last_calculated_at) / 3600;
 			account_data.cyber_token_amount += token_amount;
 		}
@@ -328,7 +349,7 @@ pub mod cyber_wave {
 			if aries_stun_end_at < current_time {
 				update_account.power_magnified = (update_account.item_power_magnified as f32 * (1.01_f32).powf(total_aries as f32)) as u32;
 				update_account.last_calculated_at = aries_stun_end_at;
-			logic::calculate_level_and_exp(update_account, current_time);
+				logic::calculate_level_and_exp(update_account, current_time);
 			}
 		// not stuned
 		} else {
