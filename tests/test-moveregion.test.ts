@@ -1,5 +1,6 @@
 import * as anchor from '@project-serum/anchor'
 import { clientKey, serverMainKey, SEED } from './config/config'
+import { checkStunEnd } from './module/module'
 
 jest.setTimeout(30000000)
 describe('cpi', () => {
@@ -32,6 +33,7 @@ describe('cpi', () => {
         // initialize, Check and create Dao Data Account
         if (newDataAccount !== null) {
             try{
+                await checkStunEnd()
                 await cyberWave.rpc.moveRegion("REGION_01", {
                 	accounts: {
                 		myAccount: newDataAccountPubkey,

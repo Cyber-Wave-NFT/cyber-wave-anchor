@@ -4,6 +4,7 @@ import { cyberPublicKey } from './config/config'
 import { serverMainKey, DEVNET_SOLPRICE } from './config/config'
 import { Utils } from './utils/utils'
 import { SYSVAR_RECENT_BLOCKHASHES_PUBKEY } from "@solana/web3.js"
+import { checkStunEnd } from './module/module'
 
 jest.setTimeout(30000000)
 describe('wave-result', () => {
@@ -78,7 +79,7 @@ describe('wave-result', () => {
 					transferTokenAmount = 0
 				}
 
-				if (transferTokenAmount != 0) {
+				if (account.region !== "CYBERWAVE") {
 					// const instructions: anchor.web3.TransactionInstruction[] = [
 					// 	Token.createTransferInstruction(
 					// 		TOKEN_PROGRAM_ID,
@@ -104,17 +105,26 @@ describe('wave-result', () => {
 				}
 			}))
 
-			const totalAries = ts.reduce((acc: any, elem: { publicKey: any, account: any }) =>
-				acc + ((elem.account.characterType === "ARIES0" && elem.account.stunEndAt < currentTime) ? 1 : 0)
-				, 0)
+			const currentTime = Math.floor(Date.now() / 1000)
+			const ts = await cyberWave.account.programAccountInfo.all()
+			const afterAccounts = ts
+				.filter((elem: { publicKey: any, account: any }) => (elem.account.accountPubkey === '61KqL2ZUFeYrEqKbFKGSZ9URJj1Y7YyWNR94ZPSnsjRv' &&
+					elem.account.lastCalculatedAt != 0)) 
+			const survivedAries = afterAccounts
+				.reduce((acc: any, elem: { publicKey: any, account: any }) =>
+					acc + ((elem.account.characterType === "ARIES0" && elem.account.stunEndAt < currentTime) ? 1 : 0), 0)
+			const totalAries = afterAccounts
+				.reduce((acc: any, elem: { publicKey: any, account: any }) =>
+					acc + ((elem.account.characterType === "ARIES0") ? 1 : 0), 0)
 			const prevTs = await cyberWave.account.programAccountInfo.all()
 			const resss = prevTs
 				.filter((elem: { publicKey: any, account: any }) => (elem.account.accountPubkey === '61KqL2ZUFeYrEqKbFKGSZ9URJj1Y7YyWNR94ZPSnsjRv' &&
 					elem.account.lastCalculatedAt != 0))
 			console.log(resss)
-			await Promise.all(accounts.map(async (account: any) => {
+			await Promise.all(afterAccounts.map(async (account: any) => {
 				const serverTx = await cyberWave.rpc.calculateExpLevel(
 					new anchor.BN(basementTime),
+					new anchor.BN(survivedAries),
 					new anchor.BN(totalAries),
 					{
 						accounts: {

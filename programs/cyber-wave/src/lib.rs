@@ -92,7 +92,7 @@ pub mod cyber_wave {
 			if account_data.region == "CYBERWAVE" {
 				logic::calculate_level_and_exp(account_data, current_time);
 			}
-			account_data.last_calculated_at = Clock::get().unwrap().unix_timestamp as u32;
+			account_data.last_calculated_at = current_time;
 			if data == "CYBERWAVE".to_string() { // region이름으로 가져오는걸로 바꾸고, region 이름은 9length string, basement + region 4
 				account_data.region = "CYBERWAVE".to_string()
 			}
@@ -134,9 +134,10 @@ pub mod cyber_wave {
 	
 	pub fn unregister(ctx: Context<Register>) -> ProgramResult {
 		let account_data =  &mut ctx.accounts.my_account;
-
-		if account_data.region == "BASE_MENT" {
 			let current_time = Clock::get().unwrap().unix_timestamp as u32;
+
+		if account_data.region == "CYBERWAVE" &&
+			current_time > account_data.stun_end_at{
 			logic::calculate_level_and_exp(account_data, current_time);
 		}
 		// unregister logic
@@ -170,7 +171,26 @@ pub mod cyber_wave {
 
 	pub fn update_power(ctx: Context<UpdatePower>, num_aries: u32) -> ProgramResult {
 		let account_data = &mut ctx.accounts.update_account;
+		let current_time = Clock::get().unwrap().unix_timestamp as u32;
+		if account_data.region == "CYBERWAVE" &&
+			current_time > account_data.stun_end_at {
+			logic::calculate_level_and_exp(account_data, current_time);
+		}
+
 		account_data.power_magnified = (account_data.item_power_magnified as f32 * (1.01_f32).powf(num_aries as f32)) as u32;
+		account_data.last_calculated_at = current_time;
+		Ok(())
+	}
+
+	pub fn update_stun_end(ctx: Context<UpdateStunEnd>, num_aries: u32, current_time: u32) -> ProgramResult {
+		let account_data = &mut ctx.accounts.update_account;
+		if account_data.region == "CYBERWAVE" &&
+			current_time > account_data.stun_end_at {
+			logic::calculate_level_and_exp(account_data, current_time);
+		}
+
+		account_data.power_magnified = (account_data.item_power_magnified as f32 * (1.01_f32).powf(num_aries as f32)) as u32;
+		account_data.last_calculated_at = current_time;
 		Ok(())
 	}
 
@@ -278,7 +298,7 @@ pub mod cyber_wave {
 		if update_account.region == "REGION_04" {
 			is_win = region_account.region_4_is_win;
 		}
-		update_account.region = "CYBERWAVE".to_string();
+
 		// vision class can survive 30%
 		if update_account.character_type == "VISION" {
 			let random = logic::get_random_seed(&ctx.accounts.sol_price_account, &ctx.accounts.recent_blockhashes, "");
@@ -296,24 +316,26 @@ pub mod cyber_wave {
 		Ok(())
 	}
 
-	pub fn calculate_exp_level(ctx: Context<CalculateExpLevel>, basement_time: u32, survived_aries: u32) -> ProgramResult {
+	pub fn calculate_exp_level(ctx: Context<CalculateExpLevel>, basement_time: u32, survived_aries: u32, total_aries: u32) -> ProgramResult {
 		let update_account = &mut ctx.accounts.update_account;
 		let current_time = Clock::get().unwrap().unix_timestamp as u32;
 
 		// stuned
 		if update_account.stun_end_at > basement_time {
-			update_account.last_calculated_at = update_account.stun_end_at;
+			update_account.power_magnified = (update_account.item_power_magnified as f32 * (1.01_f32).powf(survived_aries as f32)) as u32;
 			logic::calculate_level_and_exp(update_account, current_time);
 		// not stuned
 		} else {
-			let prev_power_magnified = update_account.power_magnified;
+			if update_account.region == "CYBERWAVE" {
+				logic::calculate_level_and_exp(update_account, basement_time);
+			}
 			update_account.power_magnified = (update_account.item_power_magnified as f32 * (1.01_f32).powf(survived_aries as f32)) as u32;
 			update_account.last_calculated_at = basement_time;
 			let aries_stun_end_at = basement_time + 86400;
 			// check result at tomorrow or after
 			if aries_stun_end_at < current_time {
 				logic::calculate_level_and_exp(update_account, aries_stun_end_at);
-				update_account.power_magnified = prev_power_magnified;
+				update_account.power_magnified = (update_account.item_power_magnified as f32 * (1.01_f32).powf(total_aries as f32)) as u32;
 				update_account.last_calculated_at = aries_stun_end_at;
 				logic::calculate_level_and_exp(update_account, current_time);
 			// check in 24 hours
@@ -322,6 +344,7 @@ pub mod cyber_wave {
 			}
 		}
 
+		update_account.region = "CYBERWAVE".to_string();
 		update_account.last_calculated_at = current_time;
 		Ok(())
 	}
@@ -356,6 +379,12 @@ pub struct Register<'info> {
 
 #[derive(Accounts)]
 pub struct UpdatePower<'info> {
+	#[account(mut)]
+	pub update_account: Account<'info, ProgramAccountInfo>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateStunEnd<'info> {
 	#[account(mut)]
 	pub update_account: Account<'info, ProgramAccountInfo>,
 }

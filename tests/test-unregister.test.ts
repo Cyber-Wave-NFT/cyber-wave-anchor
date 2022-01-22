@@ -1,6 +1,7 @@
 import * as anchor from '@project-serum/anchor'
 import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token"
 import { TIMEOUT, clientKey, serverMainKey, SEED, mintPublicKey } from './config/config'
+import { checkStunEnd } from './module/module'
 
 jest.setTimeout(TIMEOUT)
 describe('cpi', () => {
@@ -96,6 +97,7 @@ describe('cpi', () => {
                     )
                 ]
 
+                await checkStunEnd()
                 // 트랜잭션 실제 발생
                 const serverTx = await cyberWave.rpc.unregister({
                     accounts: {
@@ -117,12 +119,13 @@ describe('cpi', () => {
 
             // update power when aries unregister
             if (result.characterType === "ARIES0") {
+                const currentTime = Math.floor(Date.now() / 1000)
                 const ts = await cyberWave.account.programAccountInfo.all()
                 const accounts = ts
                     .filter((elem: { publicKey: any, account: any }) => (elem.account.accountPubkey === clientWalletAccount.publicKey.toBase58() &&
                         elem.account.lastCalculatedAt != 0))
                 let totalAries = accounts.reduce((acc: any, account: any) =>
-                    acc + (account.account.characterType === "ARIES0" ? 1 : 0)
+                    acc + (account.account.characterType === "ARIES0" && account.account.stunEndAt < currentTime ? 1 : 0)
                     , 0)
                 await Promise.all(accounts.map(async (elem: { publicKey: any, account: any }) => {
                     const allyDataAccountPubkey = elem.publicKey

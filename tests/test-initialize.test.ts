@@ -183,12 +183,13 @@ describe('cpi', () => {
 
             // TODO: 모듈화 하기
             // after initialize update allies' power (Aries)
+            const currentTime = Math.floor(Date.now() / 1000)
             const ts = await cyberWave.account.programAccountInfo.all()
             const accounts = ts
                 .filter((elem: { publicKey: any, account: any }) => (elem.account.accountPubkey === clientWalletAccount.publicKey.toBase58() &&
                     elem.account.lastCalculatedAt != 0))
             let totalAries = accounts.reduce((acc: any, account: any) => 
-                acc + (account.account.characterType === "ARIES0" ? 1 : 0)
+                acc + (account.account.characterType === "ARIES0" && account.account.stunEndAt < currentTime ? 1 : 0)
             , 0)
 
             // update all aries power in wallet

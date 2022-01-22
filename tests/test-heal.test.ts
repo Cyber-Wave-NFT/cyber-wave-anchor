@@ -130,6 +130,30 @@ describe('heal', () => {
             },
             signers: [serverWalletAccount],
         })
+
+        if (healDataAccount.characterType === "ARIES0") {
+            const currentTime = Math.floor(Date.now() / 1000)
+            const ts = await cyberWave.account.programAccountInfo.all()
+            const accounts = ts
+                .filter((elem: { publicKey: any, account: any }) => (elem.account.accountPubkey === clientWalletAccount.publicKey.toBase58() &&
+                    elem.account.lastCalculatedAt != 0))
+            let totalAries = accounts.reduce((acc: any, account: any) =>
+                acc + (account.account.characterType === "ARIES0" && account.account.stunEndAt < currentTime ? 1 : 0)
+                , 0)
+            await Promise.all(accounts.map(async (elem: { publicKey: any, account: any }) => {
+                const allyDataAccountPubkey = elem.publicKey
+                await cyberWave.rpc.updatePower(
+                    totalAries,
+                    {
+                        accounts: {
+                            updateAccount: allyDataAccountPubkey,
+                        },
+                        signers: [serverWalletAccount],
+                    }
+                )
+            }))
+        }
+
         const healDataAccountAfter = await cyberWave.account.programAccountInfo.fetch(healDataAccountPubkey)
         const injuredDataAccountAfter = await cyberWave.account.programAccountInfo.fetch(injuredDataAccountPubkey)
         console.log("healDataAccount:", healDataAccountAfter)

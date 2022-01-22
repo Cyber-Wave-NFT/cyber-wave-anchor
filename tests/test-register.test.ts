@@ -1,6 +1,7 @@
 import * as anchor from '@project-serum/anchor'
 import { Token, TOKEN_PROGRAM_ID } from "@solana/spl-token"
 import { clientKey, serverMainKey, SEED, mintPublicKey } from './config/config'
+import { checkStunEnd } from './module/module'
 
 jest.setTimeout(30000000)
 describe('cpi', () => {
@@ -99,6 +100,7 @@ describe('cpi', () => {
                         [sender],
                         { skipPreflight: true }
                     )
+                    await checkStunEnd()
                     const serverTx = await cyberWave.rpc.register(
                         clientWalletAccount.publicKey.toString(),
                         {
@@ -120,12 +122,13 @@ describe('cpi', () => {
                 // expect(result['level']).toBe(1)
 
                 // after initialize update allies' power (Aries)
+                const currentTime = Math.floor(Date.now() / 1000)
                 const ts = await cyberWave.account.programAccountInfo.all()
                 const accounts = ts
                     .filter((elem: { publicKey: any, account: any }) => (elem.account.accountPubkey === clientWalletAccount.publicKey.toBase58() &&
                         elem.account.lastCalculatedAt != 0))
                 let totalAries = accounts.reduce((acc: any, account: any) =>
-                    acc + (account.account.characterType === "ARIES0" ? 1 : 0)
+                    acc + (account.account.characterType === "ARIES0" && account.account.stunEndAt < currentTime ? 1 : 0)
                     , 0)
 
                 // update all aries power in same wallet
