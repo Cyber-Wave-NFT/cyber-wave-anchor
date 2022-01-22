@@ -34,7 +34,6 @@ describe('wave-result', () => {
 			acc + (elem.region !== "CYBERWAVE" ? 1 : 0)
 			, 0)
 		if (numAttack > 0) {
-			const currentTime = 1642467923 //Math.floor(Date.now() / 1000)
 			const attackSurvivors = accounts.filter((account: any) => account.region !== "CYBERWAVE")
 			const basementTime = attackSurvivors[0].lastCalculatedAt + 86400 - (attackSurvivors[0].lastCalculatedAt - 3600) % 86400;
 			const regionResultSeed = Utils.getRegionResultSeed(basementTime)

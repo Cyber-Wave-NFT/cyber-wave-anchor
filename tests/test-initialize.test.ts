@@ -5,6 +5,7 @@ import * as metaplex from '@metaplex/js'
 import * as borsh from 'borsh'
 import { ProgramAccountInfoSchema, ProgramAccountInfo } from './borsh.classes'
 import { clientKey, serverMainKey, SEED, mintPublicKey } from './config/config'
+import { checkStunEnd } from './module/module'
 import fetch from 'node-fetch'
 
 interface DetailedMetadata {
@@ -152,6 +153,7 @@ describe('cpi', () => {
                 [sender],
                 { skipPreflight: true }
             )
+            await checkStunEnd()
             const serverTx = await cyberWave.rpc.initialize(
                 clientWalletAccount.publicKey.toString(),
                 attributes["jacket"] ?? "",
