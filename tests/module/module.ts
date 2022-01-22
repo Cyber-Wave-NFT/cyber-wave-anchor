@@ -3,6 +3,8 @@ import { serverMainKey } from '../config/config'
 
 
 export async function checkStunEnd() {
+    // 24시간 지나서 자동으로 stun 풀린 애가 있는지 확인
+    // 만약 있다면 stun end 시까지 exp, level update 이후 last calculated, power 갱신
     const serverWalletAccount = anchor.web3.Keypair.fromSecretKey(serverMainKey)
     const cyberWave = anchor.workspace.CyberWave
     const ts = await cyberWave.account.programAccountInfo.all()

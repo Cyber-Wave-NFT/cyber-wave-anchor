@@ -111,7 +111,7 @@ describe('wave-result', () => {
 					elem.account.lastCalculatedAt != 0)) 
 			const survivedAries = afterAccounts
 				.reduce((acc: any, elem: { publicKey: any, account: any }) =>
-					acc + ((elem.account.characterType === "ARIES0" && elem.account.stunEndAt < currentTime) ? 1 : 0), 0)
+					acc + ((elem.account.characterType === "ARIES0" && elem.account.stunEndAt <= currentTime) ? 1 : 0), 0)
 			const totalAries = afterAccounts
 				.reduce((acc: any, elem: { publicKey: any, account: any }) =>
 					acc + ((elem.account.characterType === "ARIES0") ? 1 : 0), 0)
@@ -127,8 +127,7 @@ describe('wave-result', () => {
 					new anchor.BN(totalAries),
 					{
 						accounts: {
-							updateAccount: account.pubKey,
-							regionResultAccount: centralRegionResultAccountPubkey
+							updateAccount: account.publicKey,
 						},
 						signers: [serverWalletAccount],
 					})

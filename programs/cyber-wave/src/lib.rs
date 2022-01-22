@@ -319,11 +319,17 @@ pub mod cyber_wave {
 	pub fn calculate_exp_level(ctx: Context<CalculateExpLevel>, basement_time: u32, survived_aries: u32, total_aries: u32) -> ProgramResult {
 		let update_account = &mut ctx.accounts.update_account;
 		let current_time = Clock::get().unwrap().unix_timestamp as u32;
+		let aries_stun_end_at = basement_time + 86400;
 
 		// stuned
 		if update_account.stun_end_at > basement_time {
 			update_account.power_magnified = (update_account.item_power_magnified as f32 * (1.01_f32).powf(survived_aries as f32)) as u32;
+			// check result at tomorrow or after
+			if aries_stun_end_at < current_time {
+				update_account.power_magnified = (update_account.item_power_magnified as f32 * (1.01_f32).powf(total_aries as f32)) as u32;
+				update_account.last_calculated_at = aries_stun_end_at;
 			logic::calculate_level_and_exp(update_account, current_time);
+			}
 		// not stuned
 		} else {
 			if update_account.region == "CYBERWAVE" {
@@ -331,7 +337,6 @@ pub mod cyber_wave {
 			}
 			update_account.power_magnified = (update_account.item_power_magnified as f32 * (1.01_f32).powf(survived_aries as f32)) as u32;
 			update_account.last_calculated_at = basement_time;
-			let aries_stun_end_at = basement_time + 86400;
 			// check result at tomorrow or after
 			if aries_stun_end_at < current_time {
 				logic::calculate_level_and_exp(update_account, aries_stun_end_at);
